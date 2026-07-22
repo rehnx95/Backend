@@ -50,6 +50,7 @@ function result(students) {
     }
     return { name: x.name, average: avg, status: status };
   });
+  const high = students.mapzz;
   console.log(studentmarks);
 }
 
@@ -60,6 +61,17 @@ const students = [
   { name: "Ravi", marks: [60, 55, 50] },
 ];
 result(students);
+
+const myPromise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    const success = true;
+    if (success) {
+      resolve("Data loaded!"); // fulfilled — call resolve with the result
+    } else {
+      reject("Something went wrong"); // rejected — call reject with the error
+    }
+  }, 1000);
+});
 
 // const students = [
 //   { name: "Rehan", marks: [80, 90, 70] },
