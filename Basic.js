@@ -50,7 +50,7 @@ function result(students) {
     }
     return { name: x.name, average: avg, status: status };
   });
-  const high = students.mapzz;
+  const high = Math.max(...students.map((x) => x.marks.reduce((a, b) => a + b, 0)) / students[0].marks.length);
   console.log(studentmarks);
 }
 
@@ -73,13 +73,10 @@ const myPromise = new Promise((resolve, reject) => {
   }, 1000);
 });
 
-// const students = [
-//   { name: "Rehan", marks: [80, 90, 70] },
-//   { name: "Aman", marks: [40, 30, 20] },
-// ];
-
-// const names = students.map((student) => {
-//   return student.name; // grabbing .name manually
-// });
-
-// console.log(names); // ["Rehan", "Aman"]
+myPromise
+  .then((result) => {
+    console.log(result); // "Data loaded!"
+  })
+  .catch((error) => {
+    console.error(error); // "Something went wrong"
+  });
