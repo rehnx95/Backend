@@ -51,8 +51,10 @@ function result(students) {
     return { name: x.name, average: avg, status: status };
   });
 
-  const high = Math.max(...students.map((x) => x.marks.reduce((a, b) => a + b, 0) / x.marks.length));
-  
+  const high = Math.max(
+    ...students.map((x) => x.marks.reduce((a, b) => a + b, 0) / x.marks.length),
+  );
+
   const highestStudent = studentmarks.find((s) => s.average === high);
 
   console.log(studentmarks);
