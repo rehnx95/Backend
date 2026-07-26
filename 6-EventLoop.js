@@ -251,7 +251,7 @@ function recursiveMicrotask() {
 
 /* ------------------------------------------------------------
    QUICK RECAP
-   ------------------------------------------------------------
+
    1. JS itself is single-threaded and synchronous — only the
       Call Stack executes code
    2. The BROWSER provides Web APIs (setTimeout, fetch, DOM,
