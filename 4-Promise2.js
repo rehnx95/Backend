@@ -1,13 +1,3 @@
-/* ============================================================
-   PROMISES PART 2 — Creating, Chaining & Advanced Error Handling
-   ============================================================
-   Direct continuation of your first Promises file (Inversion of
-   Control, Callback Hell, basic .then()/.catch()). This file
-   goes deeper into HOW you build a promise yourself, and the
-   more advanced rules around chaining multiple .catch() blocks.
-   ============================================================ */
-
-
 /* ------------------------------------------------------------
    PART 1: CREATING A PROMISE FROM SCRATCH — THE EXECUTOR FUNCTION
    ------------------------------------------------------------
