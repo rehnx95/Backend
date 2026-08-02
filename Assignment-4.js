@@ -18,12 +18,17 @@ const products = [
   },
 ];
 
-const instock = products
-  .filter((x) => x.inStock === true)
-  .map((y) => {
-    console.log(y.name);
-  });
-console.log(instock);
+const inStockNames = products
+  .filter((p) => p.inStock === true)
+  .map((p) => p.name);
+  // MISTAKE (your version): your .map() callback did
+  // `console.log(y.name)` but had NO return statement — so map()
+  // collected "undefined" for every item (since a function with no
+  // explicit return gives back undefined). map() is for
+  // TRANSFORMING each element into something new that you RETURN;
+  // if you just want to print each one as a side effect with no
+  // new array needed, that's what forEach() is for, not map().
+console.log(inStockNames); // ["Laptop", "Mouse", "Chair"]
 
 const totalprice = products
   .filter((x) => x.inStock === true)
@@ -53,5 +58,3 @@ const expensive = products.reduce((acc, curr) => {
   }
 }, products[0]);
 console.log(expensive);
-
-// 5 is not done
