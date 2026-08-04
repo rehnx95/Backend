@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Reading Room — Library Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap');
+
+  :root {
+    --paper: #f2ead9;
+    --paper-2: #e9dfc7;
+    --ink: #2b2419;
+    --ink-soft: #5c5140;
+    --ink-faint: #8a7d64;
+    --brass: #9c7a35;
+    --brass-deep: #7a5e26;
+    --card-shelf: #fffdf7;
+    --line: #d8cbab;
+    --green-avail: #3f6b45;
+    --green-avail-bg: #e3ead9;
+    --red-borrowed: #96412f;
+    --red-borrowed-bg: #f2ded7;
+    --shadow: rgba(43, 36, 25, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(156,122,53,0.06), transparent 55%),
+      repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(43,36,25,0.02) 39px);
+    color: var(--ink);
+    font-family: 'Source Sans 3', sans-serif;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 48px 28px 90px; }
+
+  /* ===== HEADER ===== */
+  header { margin-bottom: 40px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 42px;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+    font-variation-settings: 'opsz' 60;
+  }
+  .subhead {
+    color: var(--ink-soft);
+    font-size: 15px;
+    max-width: 560px;
+    line-height: 1.55;
+  }
+
+  /* ===== LAYOUT ===== */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* ===== ADD BOOK FORM ===== */
+  .desk-card {
+    background: var(--card-shelf);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 22px;
+  }
+  .desk-card h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .desk-card h2 .mark { color: var(--brass); font-size: 20px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 0.9fr auto;
+    gap: 10px;
+  }
+  @media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+  }
+  input {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 9px 10px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--brass);
+    box-shadow: 0 0 0 3px rgba(156,122,53,0.15);
+  }
+
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    border: none;
+    border-radius: 3px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  .btn-brass {
+    background: var(--brass);
+    color: var(--paper);
+    align-self: end;
+  }
+  .btn-brass:hover { background: var(--brass-deep); }
+
+  /* ===== STATS STRIP ===== */
+  .stats-strip {
+    display: flex;
+    gap: 22px;
+    margin-bottom: 22px;
+    padding: 14px 22px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .stat { display: flex; flex-direction: column; }
+  .stat .num { font-size: 22px; font-weight: 600; color: var(--ink); font-family: 'Fraunces', serif; }
+  .stat .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); margin-top: 2px; }
+  .stat-divider { width: 1px; background: var(--line); }
+
+  /* ===== SEARCH / FILTER ===== */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-bar input { flex: 1; min-width: 180px; }
+  .chip-group { display: flex; gap: 6px; }
+  .chip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    padding: 8px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--card-shelf);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* ===== BOOK SHELF (card grid) ===== */
+  .shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+  }
+  .book-card {
+    background: var(--card-shelf);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brass);
+    border-radius: 3px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 2px var(--shadow);
+    position: relative;
+    transition: transform 0.12s ease;
+  }
+  .book-card.borrowed { border-left-color: var(--red-borrowed); }
+  .book-card:hover { transform: translateY(-2px); }
+
+  .book-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .book-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .book-author {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .book-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .pages-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .status-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .status-pill.available { background: var(--green-avail-bg); color: var(--green-avail); }
+  .status-pill.borrowed { background: var(--red-borrowed-bg); color: var(--red-borrowed); }
+
+  .book-actions { display: flex; gap: 8px; }
+  .btn-small {
+    flex: 1;
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+  .btn-borrow { background: var(--ink); color: var(--paper); }
+  .btn-borrow:hover { background: #1a1610; }
+  .btn-borrow:disabled { background: var(--line); color: var(--ink-faint); cursor: not-allowed; }
+  .btn-return { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .btn-return:hover { border-color: var(--ink-soft); }
+  .btn-return:disabled { color: var(--ink-faint); border-color: var(--line); cursor: not-allowed; }
+
+  .btn-delete {
+    flex: 0 0 auto;
+    background: transparent;
+    color: var(--red-borrowed);
+    border: 1px solid var(--line);
+    padding: 7px 11px;
+  }
+  .btn-delete:hover { background: var(--red-borrowed-bg); border-color: var(--red-borrowed); }
+
+  .checking-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    color: var(--brass-deep);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--brass);
+    animation: pulse 0.9s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  .empty-shelf {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* ===== SIDEBAR: ACTIVITY LOG ===== */
+  .sidebar-card {
+    background: var(--card-shelf);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px var(--shadow);
+    padding: 20px 22px;
+    position: sticky;
+    top: 24px;
+  }
+  .sidebar-card h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .sidebar-sub {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .action-row button { flex: 1; }
+  .btn-ghost {
+    background: var(--paper-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { background: var(--line); }
+
+  .log-feed {
+    max-height: 420px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding-right: 4px;
+  }
+  .log-entry {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.5;
+    padding: 8px 10px;
+    border-radius: 3px;
+    border-left: 3px solid var(--line);
+    background: var(--paper);
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
+  .log-entry.ok { border-left-color: var(--green-avail); }
+  .log-entry.err { border-left-color: var(--red-borrowed); color: var(--red-borrowed); }
+  .log-entry.pending { border-left-color: var(--brass); color: var(--brass-deep); }
+  .log-entry .time { color: var(--ink-faint); margin-right: 6px; }
+
+  .log-empty {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-align: center;
+    padding: 24px 10px;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">JS Concept Demo · Closures · Async/Await · Promise.allSettled · this-binding</div>
+    <h1>The Reading Room</h1>
+    <div class="subhead">
+      Every book below lives inside one closure — the same <code>library()</code> function you wrote.
+      Borrowing runs a real simulated async check with a 1‑second delay, so you can watch the
+      "checking..." state before it resolves or rejects.
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="main-col">
+
+      <div class="desk-card">
+        <h2><span class="mark">＋</span>Register a new book</h2>
+        <div class="form-row">
+          <div>
+            <label for="in-title">Title</label>
+            <input id="in-title" type="text" placeholder="The Hobbit" />
+          </div>
+          <div>
+            <label for="in-author">Author</label>
+            <input id="in-author" type="text" placeholder="J.R.R. Tolkien" />
+          </div>
+          <div>
+            <label for="in-pages">Pages</label>
+            <input id="in-pages" type="number" placeholder="310" min="1" />
+          </div>
+          <button class="btn-brass" id="add-btn">Add book</button>
+        </div>
+      </div>
+
+      <div class="stats-strip" id="stats-strip"></div>
+
+      <div class="filter-bar">
+        <input id="search-input" type="text" placeholder="Search by author…" />
+        <div class="chip-group" id="filter-chips">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="available">Available</button>
+          <button class="chip" data-filter="borrowed">Borrowed</button>
+        </div>
+      </div>
+
+      <div class="shelf" id="shelf"></div>
+    </div>
+
+    <div class="sidebar-card">
+      <h2>Activity Log</h2>
+      <div class="sidebar-sub">Live output from checkAvailability(), borrowbook(), and borrowmultiple() — the actual async calls, not simulated text.</div>
+      <div class="action-row">
+        <button class="btn-ghost" id="borrow-all-available-btn">Borrow all available (parallel)</button>
+      </div>
+      <div class="log-feed" id="log-feed">
+        <div class="log-empty">No activity yet — add a book and try borrowing it.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ===== YOUR EXACT library() FUNCTION, UNCHANGED =====
+  function library() {
+    const bookstore = [];
+    let nextid = 1;
+
+    return {
+      addbook: function (title, author, pages) {
+        let newbook = {
+          title: title,
+          author: author,
+          pages: pages,
+          id: nextid,
+          borrowed: false,
+        };
+        bookstore.push(newbook);
+        nextid = nextid + 1;
+        return newbook;
+      },
+
+      getalltitles: function () {
+        return bookstore.map((x) => x.title);
+      },
+
+      findbyauthor: function (author) {
+        return bookstore.filter((x) => x.author === author);
+      },
+
+      totalpages: function () {
+        return bookstore.reduce((acc, curr) => acc + curr.pages, 0);
+      },
+
+      foreachbook: function (callback) {
+        for (let i = 0; i < bookstore.length; i++) {
+          callback(bookstore[i]);
+        }
+      },
+
+      applytobooks: function (logic) {
+        let result = [];
+        for (let i = 0; i < bookstore.length; i++) {
+          result.push(logic(bookstore[i]));
+        }
+        return result;
+      },
+
+      checkAvailability: function (id) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            let book = bookstore.find((x) => x.id === id);
+            if (book === undefined) {
+              reject(new Error(`Book with ID ${id} is not Available`));
+            } else if (book.borrowed === true) {
+              reject(new Error(`Book with ID ${id} is already Borrowed`));
+            } else {
+              resolve(book);
+            }
+          }, 1000);
+        });
+      },
+
+      borrowbook: async function (id) {
+        let bookborrowed = await this.checkAvailability(id);
+        bookborrowed.borrowed = true;
+        return bookborrowed;
+      },
+
+      returnbook: function (id) {
+        let returningbook = bookstore.find((x) => x.id === id);
+        if (returningbook) {
+          returningbook.borrowed = false;
+          return `Book ${id} returned successfully.`;
+        }
+        return "Book not found.";
+      },
+
+      borrowmultiple: async function (ids) {
+        const multipleborrow = ids.map((id) => this.borrowbook(id));
+        return await Promise.allSettled(multipleborrow);
+      },
+
+      removebook: function (id) {
+        const index = bookstore.findIndex((x) => x.id === id);
+        if (index !== -1) {
+          bookstore.splice(index, 1);
+          return true;
+        }
+        return false;
+      },
+
+      getAllBooks: function () {
+        // added purely for the UI to render the shelf — not part of your original spec
+        return bookstore;
+      },
+    };
+  }
+
+  // ===== UI WIRING =====
+  const myLib = library();
+  let activeFilter = "all";
+  let searchTerm = "";
+  const pendingIds = new Set(); // tracks which book ids are mid-"checking" for the UI badge
+
+  const shelfEl = document.getElementById("shelf");
+  const statsEl = document.getElementById("stats-strip");
+  const logFeedEl = document.getElementById("log-feed");
+
+  function timeNow() {
+    return new Date().toLocaleTimeString([], { hour12: false });
+  }
+
+  function addLog(message, type) {
+    const emptyMsg = logFeedEl.querySelector(".log-empty");
+    if (emptyMsg) emptyMsg.remove();
+    const entry = document.createElement("div");
+    entry.className = "log-entry " + type;
+    entry.innerHTML = `<span class="time">${timeNow()}</span>${message}`;
+    logFeedEl.appendChild(entry);
+    logFeedEl.scrollTop = logFeedEl.scrollHeight;
+  }
+
+  function renderStats() {
+    const books = myLib.getAllBooks();
+    const borrowedCount = books.filter((b) => b.borrowed).length;
+    const totalPages = myLib.totalpages();
+    statsEl.innerHTML = `
+      <div class="stat"><span class="num">${books.length}</span><span class="lbl">Books</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="num">${books.length - borrowedCount}</span><span class="lbl">Available</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="num">${borrowedCount}</span><span class="lbl">Borrowed</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="num">${totalPages}</span><span class="lbl">Total pages</span></div>
+    `;
+  }
+
+  function renderShelf() {
+    let books = myLib.getAllBooks();
+
+    if (searchTerm.trim() !== "") {
+      books = myLib.findbyauthor(searchTerm.trim());
+    }
+    if (activeFilter === "available") books = books.filter((b) => !b.borrowed);
+    if (activeFilter === "borrowed") books = books.filter((b) => b.borrowed);
+
+    if (books.length === 0) {
+      shelfEl.innerHTML = `<div class="empty-shelf">No books match — try adding one or clearing filters.</div>`;
+      return;
+    }
+
+    shelfEl.innerHTML = books
+      .map((book) => {
+        const isPending = pendingIds.has(book.id);
+        return `
+          <div class="book-card ${book.borrowed ? "borrowed" : ""}">
+            ${isPending ? `<div class="checking-badge"><span class="pulse-dot"></span>checking…</div>` : ""}
+            <div class="book-id">ID ${book.id}</div>
+            <div class="book-title">${escapeHtml(book.title)}</div>
+            <div class="book-author">${escapeHtml(book.author)}</div>
+            <div class="book-meta">
+              <span class="pages-tag">${book.pages} pages</span>
+              <span class="status-pill ${book.borrowed ? "borrowed" : "available"}">${book.borrowed ? "Borrowed" : "Available"}</span>
+            </div>
+            <div class="book-actions">
+              <button class="btn-small btn-borrow" data-id="${book.id}" data-action="borrow" ${book.borrowed || isPending ? "disabled" : ""}>Borrow</button>
+              <button class="btn-small btn-return" data-id="${book.id}" data-action="return" ${!book.borrowed ? "disabled" : ""}>Return</button>
+              <button class="btn-small btn-delete" data-id="${book.id}" data-action="delete" title="Remove book">✕</button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderAll() {
+    renderStats();
+    renderShelf();
+  }
+
+  // ---- Add book ----
+  document.getElementById("add-btn").addEventListener("click", () => {
+    const title = document.getElementById("in-title").value.trim();
+    const author = document.getElementById("in-author").value.trim();
+    const pages = parseInt(document.getElementById("in-pages").value, 10);
+
+    if (!title || !author || !pages || pages <= 0) {
+      addLog(`Add failed — title, author, and a positive page count are all required.`, "err");
+      return;
+    }
+
+    const newBook = myLib.addbook(title, author, pages);
+    addLog(`Registered <b>#${newBook.id} "${escapeHtml(title)}"</b> by ${escapeHtml(author)} (${pages}p)`, "ok");
+
+    document.getElementById("in-title").value = "";
+    document.getElementById("in-author").value = "";
+    document.getElementById("in-pages").value = "";
+    document.getElementById("in-title").focus();
+
+    renderAll();
+  });
+
+  // ---- Borrow / Return (event delegation on the shelf) ----
+  shelfEl.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    const action = btn.dataset.action;
+
+    if (action === "return") {
+      const message = myLib.returnbook(id);
+      addLog(message, "ok");
+      renderAll();
+      return;
+    }
+
+    if (action === "delete") {
+      const book = myLib.getAllBooks().find((b) => b.id === id);
+      const removed = myLib.removebook(id);
+      if (removed) {
+        addLog(`Removed <b>"${escapeHtml(book.title)}"</b> (id ${id}) from the library.`, "err");
+      } else {
+        addLog(`Remove failed — no book with id ${id}.`, "err");
+      }
+      renderAll();
+      return;
+    }
+
+    if (action === "borrow") {
+      pendingIds.add(id);
+      addLog(`checkAvailability(${id}) called — waiting ~1s (real async delay)…`, "pending");
+      renderAll();
+
+      try {
+        const borrowed = await myLib.borrowbook(id);
+        addLog(`Borrowed <b>"${escapeHtml(borrowed.title)}"</b> (id ${id}) successfully.`, "ok");
+      } catch (err) {
+        addLog(`Borrow failed for id ${id}: ${err.message}`, "err");
+      } finally {
+        pendingIds.delete(id);
+        renderAll();
+      }
+    }
+  });
+
+  // ---- Borrow all available, in parallel, via Promise.allSettled ----
+  document.getElementById("borrow-all-available-btn").addEventListener("click", async () => {
+    const availableIds = myLib.getAllBooks().filter((b) => !b.borrowed).map((b) => b.id);
+    if (availableIds.length === 0) {
+      addLog(`No available books to borrow.`, "err");
+      return;
+    }
+
+    availableIds.forEach((id) => pendingIds.add(id));
+    addLog(`borrowmultiple([${availableIds.join(", ")}]) called — running in PARALLEL via Promise.allSettled…`, "pending");
+    renderAll();
+
+    const results = await myLib.borrowmultiple(availableIds);
+
+    results.forEach((r, i) => {
+      const id = availableIds[i];
+      if (r.status === "fulfilled") {
+        addLog(`  ↳ id ${id}: <b>fulfilled</b> — "${escapeHtml(r.value.title)}"`, "ok");
+      } else {
+        addLog(`  ↳ id ${id}: <b>rejected</b> — ${r.reason.message}`, "err");
+      }
+    });
+
+    availableIds.forEach((id) => pendingIds.delete(id));
+    renderAll();
+  });
+
+  // ---- Search / filter ----
+  document.getElementById("search-input").addEventListener("input", (e) => {
+    searchTerm = e.target.value;
+    renderShelf();
+  });
+
+  document.getElementById("filter-chips").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+    activeFilter = chip.dataset.filter;
+    renderShelf();
+  });
+
+  // ---- Seed with your original test data ----
+  myLib.addbook("The Hobbit", "J.R.R. Tolkien", 310);
+  myLib.addbook("The Fellowship of the Ring", "J.R.R. Tolkien", 423);
+  myLib.addbook("Dune", "Frank Herbert", 412);
+  myLib.addbook("1984", "George Orwell", 328);
+  myLib.addbook("Animal Farm", "George Orwell", 112);
+  renderAll();
+</script>
+</body>
+</html>
