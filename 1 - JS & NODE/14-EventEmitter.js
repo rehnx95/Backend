@@ -18,8 +18,6 @@ emitter.emit('greet', 'Rehan');
 // THIS is what actually triggers it. emit('greet', 'Rehan') means:
 // "the 'greet' event just happened, and here's the data ('Rehan')
 // to pass along to whoever's listening."
-// Node looks up anyone who called .on('greet', ...) and runs them,
-// passing 'Rehan' in as the argument.
 
 console.log('after emit');
 
