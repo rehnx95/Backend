@@ -1,13 +1,15 @@
 const express = require("express");
 const fs = require("fs");
 const http = require("http");
+const path = require("path");
 
 const port = 2000;
 const app = express();
 
-app.get("/", (req, res) => {
-  const html = fs.readFileSync("index.html");
-  res.send(html.toString());
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/:name", (req, res) => {
+  res.send("hello: " + req.params.name);
 });
 
 app.get("/about", (req, res) => {
