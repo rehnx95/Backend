@@ -22,4 +22,10 @@ router.get("/contact", (req, res) => {
   res.send("<h1>Welcome to My Website</h1>  <p>My Website Contact</p>");
 });
 
+router.get("/:id", (req, res) => {
+  res.send(`Blog post ${req.params.id}`);
+});
+
+module.exports = router;
+
 module.exports = router;

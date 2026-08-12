@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Auth Demo</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 { font-size: 20px; }
+  h2 { font-size: 16px; margin-top: 40px; }
+  input {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0 12px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+  button {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .result {
+    margin-top: 8px;
+    padding: 8px;
+    background: #f4f4f4;
+    border-radius: 4px;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .server-url {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Auth Demo</h1>
+
+<div class="server-url">
+  Server URL:
+  <input id="serverUrl" value="http://localhost:7000" />
+</div>
+
+<!-- ===================== SIGNUP ===================== -->
+<h2>1. Signup</h2>
+<input id="signupEmail" type="email" placeholder="Email" />
+<input id="signupPassword" type="password" placeholder="Password" />
+<button id="signupBtn">Sign Up</button>
+<div id="signupResult" class="result"></div>
+
+<!-- ===================== LOGIN ===================== -->
+<h2>2. Login</h2>
+<input id="loginEmail" type="email" placeholder="Email" />
+<input id="loginPassword" type="password" placeholder="Password" />
+<button id="loginBtn">Log In</button>
+<div id="loginResult" class="result"></div>
+
+<!-- ===================== PROFILE ===================== -->
+<h2>3. Profile (protected)</h2>
+<button id="profileBtn">Get My Profile</button>
+<button id="logoutBtn">Log Out</button>
+<div id="profileResult" class="result"></div>
+
+<script>
+
+  function saveToken(token) {
+    localStorage.setItem("authToken", token);
+  }
+
+  function getSavedToken() {
+    return localStorage.getItem("authToken");
+  }
+
+  function clearSavedToken() {
+    localStorage.removeItem("authToken");
+  }
+
+  // On page load, check if we already have a token saved from before
+  // (e.g. the user logged in, then refreshed the page).
+
+  let currentToken = getSavedToken();
+
+  function serverUrl() {
+    return document.getElementById("serverUrl").value.replace(/\/$/, "");
+  }
+
+  // ---------- SIGNUP ----------
+  document.getElementById("signupBtn").addEventListener("click", async () => {
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+    const resultBox = document.getElementById("signupResult");
+
+    try {
+      const res = await fetch(serverUrl() + "/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const text = await res.text();
+      resultBox.textContent = text;
+    } catch (err) {
+      resultBox.textContent = "Error: " + err.message;
+    }
+  });
+
+  // ---------- LOGIN ----------
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+    const resultBox = document.getElementById("loginResult");
+
+    try {
+      const res = await fetch(serverUrl() + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const text = await res.text();
+
+      // If login succeeded, the server sends back a JWT (a long dotted string).
+      // A real error message like "error not match" won't have dots in it,
+      // so we use that as a rough check here just for this demo.
+      if (text.split(".").length === 3) {
+        currentToken = text;
+        saveToken(text); 
+        resultBox.textContent = "Login successful. Token saved.\n\n" + text;
+      } else {
+        currentToken = null;
+        clearSavedToken(); 
+        resultBox.textContent = text;
+      }
+    } catch (err) {
+      resultBox.textContent = "Error: " + err.message;
+    }
+  });
+
+  // ---------- PROFILE ----------
+  document.getElementById("profileBtn").addEventListener("click", async () => {
+    const resultBox = document.getElementById("profileResult");
+
+    if (!currentToken) {
+      resultBox.textContent = "You need to log in first — no token saved.";
+      return;
+    }
+
+    try {
+      const res = await fetch(serverUrl() + "/profile", {
+        headers: { "Authorization": "Bearer " + currentToken }
+      });
+      const text = await res.text();
+      resultBox.textContent = text;
+    } catch (err) {
+      resultBox.textContent = "Error: " + err.message;
+    }
+  });
+
+  // ---------- LOGOUT ----------
+  // "Logging out" here just means forgetting the token on our side.
+  // The server doesn't need to be told anything — the token itself
+  // doesn't change, we just stop sending it.
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    currentToken = null;
+    clearSavedToken(); 
+    document.getElementById("profileResult").textContent = "Logged out (token cleared).";
+  });
+</script>
+
+</body>
+</html>
