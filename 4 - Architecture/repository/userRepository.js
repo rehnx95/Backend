@@ -8,7 +8,6 @@ function findByEmail(email) {
 function create(user) {
   console.log("[repository] create:", user.email);
   users.push(user);
-  return user;
 }
 
 function count() {
