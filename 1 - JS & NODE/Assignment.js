@@ -57,6 +57,77 @@
        with each other's balance
    ================================================================ */
 
+/*
+//    CORRECTED PREDICTIONS:
+//    undefined
+//    NaN                  <- MISTAKE: you predicted 20. Hoisting only
+//                            allocates memory (undefined) during the
+//                            memory phase — it does NOT run the
+//                            assignment early. When getValue() runs,
+//                            "a" is STILL undefined (the "var a = 10"
+//                            line hasn't executed yet), so
+//                            undefined * 2 = NaN, not 20.
+//    100
+//    undefined            <- detached() called with no object before
+//                            the dot -> "this" is NOT obj -> this.value
+//                            is undefined (or throws in strict mode)
+//    100                  <- .call(obj) forces "this" back to obj
+//    8
+//    15
+// */
+
+// function mystery() {
+//   console.log(a); // undefined
+//   console.log(getValue()); // NaN — see explanation above
+//   var a = 10;
+
+//   function getValue() {
+//     return a * 2;
+//   }
+// }
+// mystery();
+
+// const obj = {
+//   value: 100,
+//   getValue: function () {
+//     return this.value;
+//   },
+// };
+// const detached = obj.getValue;
+// console.log(obj.getValue()); // 100
+// console.log(detached()); // undefined (or error) — called plainly, no "this"
+// console.log(detached.call(obj)); // 100 — "this" manually restored
+
+// function makeAdder(x) {
+//   return function (y) {
+//     return x + y;
+//   };
+// }
+// const add5 = makeAdder(5);
+// console.log(add5(3)); // 8
+// console.log(add5(10)); // 15
+
+// /* ------------------------------------------------------------
+//    SUMMARY OF THE ACTUAL PATTERNS TO INTERNALIZE
+//    ------------------------------------------------------------
+//    1. Hoisting gives UNDEFINED at the memory phase, not the
+//       eventual value — don't assume a variable "already has its
+//       value" just because it was declared earlier in the file
+//    2. map() must RETURN something per element — if you're just
+//       doing a side effect (like printing), use forEach() instead
+//    3. Once an async function's try/catch handles an error, the
+//       function's OWN returned promise is no longer rejected —
+//       outside .catch() chains won't fire anymore after that
+//    4. Name variables after what they actually hold, not what
+//       you plan to extract from them later
+//    5. A closure's private variable and a function's PARAMETER can
+//       have similar names but are completely different variables —
+//       don't assume touching one affects the other
+//    6. Logging a promise directly shows "Promise {<pending>}" —
+//       always await it or chain .then() before expecting the
+//       resolved value
+//    ------------------------------------------------------------ */
+
 /* ================================================================
    ASSIGNMENT 2 — Event Loop, setTimeout, Callbacks, Closures
    ================================================================
@@ -96,6 +167,31 @@
 
    Think carefully about var vs let before you start.
    ================================================================ */
+
+/*
+// 1
+// 4
+// 3
+// 5
+// 2
+// var loop:3
+// var loop:3
+// var loop:3
+// let loop:0
+// let loop:1
+// let loop:2
+// first console log then promise then settimeout with 0 second then var loop then let loop
+// */
+// function delayedSequence(items) {
+//   for (let i = 0; i < items.length; i++) {
+//     setTimeout(() => {
+//       console.log(`items[${i}] at ${i}s time is ${new Date().toTimeString()}`);
+//     }, i * 1000);
+//   }
+// }
+// let arr=["item1","item2","item3","item4","item5",]
+// delayedSequence(arr);
+
 
 /* ================================================================
    ASSIGNMENT 3 — Promises, async/await, Promise APIs
@@ -153,6 +249,73 @@
    (that would be sequential, not parallel — think about why).
    ================================================================ */
 
+// function fetchUser(id) {
+//   return new Promise(function (resolve, reject) {
+//     setTimeout(() => {
+//       if (id <= 0) {
+//         reject(new Error("Invalid User"));
+//       } else {
+//         resolve({ id: id, name: "user " + id });
+//       }
+//     }, 500); 
+//   });
+// }
+
+// function fetchOrders(userId, orderList) {
+//   return new Promise((resolve) => {
+//     setTimeout(() => {
+//       resolve({ id: userId, orders: orderList });
+//     }, 300); 
+//   });
+// }
+
+// async function getUserWithOrders(id, orderList) {
+//   try {
+//     const user = await fetchUser(id);
+//     // MISTAKE (your version): you named this "userId" even though
+//     // it holds the WHOLE user object ({ id, name }), not just the
+//     // id. This is exactly how naming bugs hide in real code — later
+//     // someone (or future you) reads "userId.name" and gets
+//     // confused about what's actually stored there. Name variables
+//     // after what they actually ARE, not after what you expect to
+//     // extract from them later.
+//     const orderData = await fetchOrders(user.id, orderList);
+//     return { user, orders: orderData.orders };
+//   } catch (err) {
+//     console.log(err.message);
+//     // MISTAKE (your version): you logged the error here, but the
+//     // function then returns undefined implicitly (no return
+//     // statement in the catch block). The assignment specifically
+//     // asked for the function to return null on failure, so that
+//     // WHOEVER CALLS this function can reliably check
+//     // "if (result === null)" instead of getting an unpredictable
+//     // undefined that might be confused with "not yet resolved."
+//     return null;
+//   }
+// }
+
+// const orderList = ["order1", "order2", "order3"];
+
+// // valid id:
+// getUserWithOrders(5, orderList).then((result) => {
+//   console.log("Valid id result:", result);
+// });
+
+// // invalid id:
+// getUserWithOrders(-2, orderList).then((result) => {
+//   // MISTAKE (your version): you chained BOTH .then() AND .catch()
+//   // onto fetchans(), expecting .catch() to fire on failure. But
+//   // your try/catch INSIDE the async function already caught the
+//   // rejection — by the time .then()/.catch() run on the OUTSIDE,
+//   // the promise has already resolved successfully (with the value
+//   // "undefined", or now "null" after the fix), so .catch() never
+//   // fires. Once an error is caught INSIDE an async function, the
+//   // async function's own returned promise is no longer rejected —
+//   // it's just resolved with whatever the catch block returns.
+//   console.log("Invalid id result:", result); // null
+// });
+
+
 /* ================================================================
    ASSIGNMENT 4 — Higher-Order Functions, map/filter/reduce, Objects
    ================================================================
@@ -192,6 +355,68 @@
       pattern from scratch, but for this products array. Then use
       it to extract just the ids of all products.
    ================================================================ */
+
+// const products = [
+//   {
+//     id: 1,
+//     name: "Laptop",
+//     price: 55000,
+//     category: "electronics",
+//     inStock: true,
+//   },
+//   { id: 2, name: "Desk", price: 8000, category: "furniture", inStock: false },
+//   { id: 3, name: "Mouse", price: 500, category: "electronics", inStock: true },
+//   { id: 4, name: "Chair", price: 4500, category: "furniture", inStock: true },
+//   {
+//     id: 5,
+//     name: "Monitor",
+//     price: 12000,
+//     category: "electronics",
+//     inStock: false,
+//   },
+// ];
+
+// const inStockNames = products
+//   .filter((p) => p.inStock === true)
+//   .map((p) => p.name);
+//   // MISTAKE (your version): your .map() callback did
+//   // `console.log(y.name)` but had NO return statement — so map()
+//   // collected "undefined" for every item (since a function with no
+//   // explicit return gives back undefined). map() is for
+//   // TRANSFORMING each element into something new that you RETURN;
+//   // if you just want to print each one as a side effect with no
+//   // new array needed, that's what forEach() is for, not map().
+// console.log(inStockNames); // ["Laptop", "Mouse", "Chair"]
+
+// const totalprice = products
+//   .filter((x) => x.inStock === true)
+//   .reduce((acc, curr) => {
+//     return acc + curr.price;
+//   }, 0);
+// console.log(totalprice);
+
+// const Group = products.reduce(
+//   (acc, curr) => {
+//     if (curr.category === "electronics") {
+//       acc.electronics.push(curr);
+//     } else {
+//       acc.furniture.push(curr);
+//     }
+//     return acc;
+//   },
+//   { electronics: [], furniture: [] },
+// );
+// console.log(Group);
+
+// const expensive = products.reduce((acc, curr) => {
+//   if (curr.price > acc) {
+//     return curr;
+//   } else {
+//     return acc;
+//   }
+// }, products[0]);
+// console.log(expensive);
+
 
 /* ================================================================
    ASSIGNMENT 5 — Everything Combined: A Mini "Backend-Style" Task
@@ -243,6 +468,106 @@
        crashing the whole flow
      - Each user got the correct auto-incremented id
    ================================================================ */
+
+// function createUserStore() {
+//   let users = [];
+//   let nextId = 1;
+
+//   return {
+//     addUser: function (userData) {
+//       const newUser = { id: nextId, ...userData };
+//       users.push(newUser);
+//       nextId++;
+//       return newUser;
+//     },
+//     getUserById: function (id) {
+//       return users.find((u) => u.id === id); // find() returns ONE object or
+//       // undefined — your original used filter(), which returns an
+//       // ARRAY (even if it has just one item). Not a bug exactly,
+//       // but find() is the more correct tool for "get exactly one
+//       // matching item," matching what the assignment asked for.
+//     },
+//     getAllUsers: function () {
+//       return users;
+//     },
+//     deleteUser: function (id) {
+//       const originalLength = users.length;
+//       users = users.filter((u) => u.id !== id);
+//       // MISTAKE (your version): you wrote "id--" here, intending to
+//       // roll back the auto-increment counter. But "id" here is the
+//       // FUNCTION'S PARAMETER (whatever id was passed in to delete),
+//       // NOT the closure's "nextId" counter used in addUser — these
+//       // are two completely different variables that happen to have
+//       // similar names. Decrementing the parameter does nothing
+//       // useful at all. The FIX is simpler than trying to repair
+//       // it: just don't touch nextId on delete. New users should
+//       // keep getting fresh, never-reused ids, even after a
+//       // deletion — reusing ids after deletes is what actually
+//       // causes bugs (e.g. two different "user #3"s existing at
+//       // different points in time).
+//       return users.length < originalLength; // true if something was removed
+//     },
+//   };
+// }
+
+// function simulateSignup(store, userData) {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       const { name, email } = userData;
+//       if (name && email) {
+//         resolve(store.addUser(userData));
+//       } else {
+//         reject(new Error("Invalid user: name and email are both required"));
+//       }
+//     }, 500);
+//   });
+// }
+// // MISTAKE (your version): simulateSignup() used the OUTER "user"
+// // variable directly (store.addUser(userData) was store's own
+// // closure, fine) — but note your ORIGINAL code called
+// // user.addUser(userData) referencing a store from OUTSIDE the
+// // function entirely, meaning simulateSignup could only EVER work
+// // with that one hardcoded store. Passing "store" in as a PARAMETER
+// // (as done here, and as the assignment asked) makes this function
+// // reusable with ANY store, not locked to one global instance.
+
+// async function runSignupFlow() {
+//   const store = createUserStore();
+
+//   const signups = [
+//     { name: "Rehan", email: "rehan@example.com" },
+//     { name: "Alok" }, // deliberately invalid — missing email
+//     { name: "Ashish", email: "ashish@example.com" },
+//   ];
+
+//   for (const userData of signups) {
+//     try {
+//       const newUser = await simulateSignup(store, userData);
+//       console.log("Signed up:", newUser);
+//     } catch (err) {
+//       console.log("Signup failed:", err.message);
+//       // try/catch INSIDE the loop means one failure doesn't stop
+//       // the loop — the next iteration still runs
+//     }
+//   }
+
+//   console.log("Final users in store:", store.getAllUsers());
+// }
+
+// runSignupFlow();
+// // MISTAKE (your version): you called simulateSignup() directly and
+// // did `console.log(simulate)` immediately — but simulateSignup()
+// // RETURNS A PROMISE, so that line just logs "Promise {<pending>}",
+// // not the actual result. You also never wrote runSignupFlow() at
+// // all, which was the actual point of the assignment (running
+// // THREE signups, with error handling around EACH one individually,
+// // then showing the final state). Always either .then() a promise,
+// // or await it inside an async function, before trying to log its
+// // resolved value — logging the promise object itself is one of the
+// // most common beginner mistakes with async code.
+
+
+
 
 /* ============================================================
    ASSIGNMENT 6 — Coverage Round
@@ -399,6 +724,111 @@
    Promise object directly (to see the wrong output for
    yourself), and comment on what it prints.
    ------------------------------------------------------------ */
+
+/*
+// undefined
+// undefined i do not revise tdz let vs var
+// NaN
+// */
+
+// const temps = [30, 25, 40, 15, 35]; // Celsius
+
+// temps.forEach((x) => console.log(x * (9 / 5) + 32));
+// // foreach transform array not giving brand new array
+
+// const Fahrenheit = temps.map((x) => x * (9 / 5) + 32);
+// console.log(Fahrenheit);
+
+// // replacing map with foreach give undefine as foreach only tranform
+
+// function riskyOperation(shouldFail) {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       if (shouldFail) reject(new Error("Operation failed"));
+//       else resolve("Operation succeeded");
+//     }, 300);
+//   });
+// }
+
+// async function swallowsError(shouldFail) {
+//   try {
+//     const result = await riskyOperation(shouldFail);
+//     return result;
+//   } catch (err) {
+//     console.log(err.message);
+//     return null;
+//   }
+// }
+// swallowsError(true).then((r) => console.log(r));
+// swallowsError(true).catch((e) => console.log("caught"));
+
+// async function letsErrorPropagate(shouldFail) {
+//   const result = await riskyOperation(shouldFail);
+//   return result;
+// }
+// letsErrorPropagate(true)
+//   .then((r) => console.log(r))
+//   .catch((e) => console.log("caught"));
+// letsErrorPropagate(true).catch((e) => console.log("caught"));
+
+// async function process(id) {
+//   const name = await fetchUser(id); // holds a whole object, not a name
+//   const list = await fetchOrders(name.id); // "list" holds an object too, not an array
+//   return { data: name, extra: list.orders };
+// }
+
+// // name-user
+// // name.id-user.id
+// // list-orderlist
+// // extra-order
+// // orderlist.orders
+
+// function createInventory() {
+//   let stock = 0;
+//   return {
+//     restock: function (stock) {
+//       stock += stock;
+//       return stock;
+//     },
+//     sell: function (stock) {
+//       stock -= stock;
+//     },
+//     getstock: function () {
+//       return stock;
+//     },
+//   };
+// }
+
+// const inv = createInventory();
+// console.log(inv.getstock());
+// console.log(inv.restock(500));
+// console.log(inv.getstock());
+
+// console.log(inv.restock(500));
+
+// console.log(inv.getstock());
+
+// function getRandomNumber() {
+//   return new Promise((resolve) => {
+//     setTimeout(() => resolve(Math.floor(Math.random() * 100)), 200);
+//   });
+// }
+
+// getRandomNumber().then((r) => console.log(r));
+
+// (async () => {
+//   const result1 = await getRandomNumber();
+//   console.log(result1);
+// })();
+
+// async function call() {
+//   const result2 = await getRandomNumber();
+//   return result2;
+// }
+// call().then((r) => console.log(r));
+
+// console.log(call());
+
 
 /* ============================================================
    ASSIGNMENT 7
@@ -627,3 +1057,140 @@ const rawOrders = [
    If any answer is "no" or "not sure," that's the ONE topic
    worth re-reading — not the whole file.
    ------------------------------------------------------------ */
+
+
+   /*
+// underfined
+// welcome to undefined
+// */
+
+// const rawOrders = [
+//   {
+//     orderId: 1,
+//     customer: "Alok",
+//     items: [
+//       { name: "Pen", price: 20, qty: 5 },
+//       { name: "Notebook", price: 60, qty: 2 },
+//     ],
+//   },
+//   {
+//     orderId: 2,
+//     customer: "Ashish",
+//     items: [{ name: "Bag", price: 800, qty: 1 }],
+//   },
+//   { orderId: 3, customer: "Ankit", items: [] }, // deliberately empty — no items
+//   {
+//     orderId: 4,
+//     customer: "Pranav",
+//     items: [
+//       { name: "Bottle", price: 150, qty: 3 },
+//       { name: "Pen", price: 20, qty: 10 },
+//     ],
+//   },
+// ];
+
+// function calculateOrderTotal(order) {
+//   const itemarray = order.items;
+//   // console.log(itemarray)
+//   const price = itemarray.map((x) => x.price * x.qty);
+//   // console.log(price)
+//   const totalprice = price.reduce((acc, curr) => {
+//     return acc + curr;
+//   }, 0);
+//   // console.log(totalprice)
+//   return totalprice;
+// }
+// console.log(calculateOrderTotal(rawOrders[2]));
+
+// // logic based
+
+// function applyToEachOrder2(orders, logic) {
+//   let ans = [];
+//   for (let i = 0; i < orders.length; i++) {
+//     ans.push(logic(orders[i]));
+//   }
+//   return ans;
+// }
+// console.log(applyToEachOrder2(rawOrders, calculateOrderTotal));
+
+// function createOrderLogger() {
+//   let log = [];
+//   return {
+//     record: function (entry) {
+//       log.push(entry);
+//     },
+//     getlog: function () {
+//       return log;
+//     },
+//     printlog: function (formatterCallback) {
+//       for (let i = 0; i < log.length; i++) {
+//         console.log(formatterCallback(log[i]));
+//       }
+//     },
+//   };
+// }
+
+// function formatterCallback(entry) {
+//   return `[LOG] ${entry}`;
+// }
+
+// const myLogger = createOrderLogger();
+
+// myLogger.record("Order 101 placed by Alok");
+// myLogger.record("Payment received for Order 102");
+// myLogger.record("Order 103 items are out of stock");
+
+// myLogger.printlog(formatterCallback);
+// console.log(myLogger.getlog());
+
+// async function validateOrder(order) {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       if (order.items.length === 0) {
+//         reject(new Error(`Invalid Order for ${order.customer}`));
+//       } else {
+//         resolve(order);
+//       }
+//     }, 500);
+//   });
+// }
+
+// async function processOrder(order, logger) {
+//   let validatedOrder = await validateOrder(order);
+//   const total = calculateOrderTotal(validatedOrder);
+//   const { customer } = validatedOrder;
+//   logger.record(`Processed Order For ${customer}. Total: ₹$${total}`);
+//   return { customer, total };
+// }
+// processOrder(rawOrders[0], myLogger).then((r) => console.log(r));
+
+// async function processAllOrders(orders, logger) {
+//   const promises = orders.map((order) => processOrder(order, logger));
+//   const settle = await Promise.allSettled(promises);
+//   return settle.map((x) => x.value || x.reason);
+// }
+// processAllOrders(rawOrders, myLogger).then((r) => console.log(r));
+
+// function createOrderCounter() {
+//   const counterobj = {
+//     count: 0,
+//     recordOrder: function (count) {
+//       this.count++; 
+//     },
+//     getCount: function () {
+//       return this.count;
+//     },
+//   };
+//   return counterobj;
+// }
+
+// const create = createOrderCounter();
+// create.recordOrder(1);
+// create.recordOrder(5);
+// create.recordOrder(1);
+// create.recordOrder(4);
+
+// console.log(create.getCount()); 
+
+
+
