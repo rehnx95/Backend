@@ -1,4 +1,15 @@
 /* ================================================================
+   JS FUNDAMENTALS — PRACTICE & REVISION ARCHIVE
+   ================================================================
+   Assignments 1–6: solved, with mistakes I made and corrections.
+   Assignment 7: in progress.
+
+   Kept in full (not summarized) for revision — the "MISTAKE"
+   comments are the most useful part to re-read before interviews.
+   ================================================================ */
+
+
+/* ================================================================
    ASSIGNMENT 1 — Execution Context, Hoisting, Closures, this
    ================================================================
    Topics tested: hoisting, execution context order, closures,
@@ -58,75 +69,103 @@
    ================================================================ */
 
 /*
-//    CORRECTED PREDICTIONS:
-//    undefined
-//    NaN                  <- MISTAKE: you predicted 20. Hoisting only
-//                            allocates memory (undefined) during the
-//                            memory phase — it does NOT run the
-//                            assignment early. When getValue() runs,
-//                            "a" is STILL undefined (the "var a = 10"
-//                            line hasn't executed yet), so
-//                            undefined * 2 = NaN, not 20.
-//    100
-//    undefined            <- detached() called with no object before
-//                            the dot -> "this" is NOT obj -> this.value
-//                            is undefined (or throws in strict mode)
-//    100                  <- .call(obj) forces "this" back to obj
-//    8
-//    15
-// */
+   MY PREDICTIONS (original, before correction):
+   ... predicted 20 for the getValue() line
 
-// function mystery() {
-//   console.log(a); // undefined
-//   console.log(getValue()); // NaN — see explanation above
-//   var a = 10;
+   CORRECTED PREDICTIONS:
+   undefined
+   NaN                  <- MISTAKE: I predicted 20. Hoisting only
+                            allocates memory (undefined) during the
+                            memory phase — it does NOT run the
+                            assignment early. When getValue() runs,
+                            "a" is STILL undefined (the "var a = 10"
+                            line hasn't executed yet), so
+                            undefined * 2 = NaN, not 20.
+   100
+   undefined            <- detached() called with no object before
+                            the dot -> "this" is NOT obj -> this.value
+                            is undefined (or throws in strict mode)
+   100                  <- .call(obj) forces "this" back to obj
+   8
+   15
+*/
 
-//   function getValue() {
-//     return a * 2;
-//   }
-// }
-// mystery();
+function mystery() {
+  console.log(a); // undefined
+  console.log(getValue()); // NaN — see explanation above
+  var a = 10;
 
-// const obj = {
-//   value: 100,
-//   getValue: function () {
-//     return this.value;
-//   },
-// };
-// const detached = obj.getValue;
-// console.log(obj.getValue()); // 100
-// console.log(detached()); // undefined (or error) — called plainly, no "this"
-// console.log(detached.call(obj)); // 100 — "this" manually restored
+  function getValue() {
+    return a * 2;
+  }
+}
+mystery();
 
-// function makeAdder(x) {
-//   return function (y) {
-//     return x + y;
-//   };
-// }
-// const add5 = makeAdder(5);
-// console.log(add5(3)); // 8
-// console.log(add5(10)); // 15
+const obj = {
+  value: 100,
+  getValue: function () {
+    return this.value;
+  },
+};
+const detached = obj.getValue;
+console.log(obj.getValue()); // 100
+console.log(detached()); // undefined (or error) — called plainly, no "this"
+console.log(detached.call(obj)); // 100 — "this" manually restored
 
-// /* ------------------------------------------------------------
-//    SUMMARY OF THE ACTUAL PATTERNS TO INTERNALIZE
-//    ------------------------------------------------------------
-//    1. Hoisting gives UNDEFINED at the memory phase, not the
-//       eventual value — don't assume a variable "already has its
-//       value" just because it was declared earlier in the file
-//    2. map() must RETURN something per element — if you're just
-//       doing a side effect (like printing), use forEach() instead
-//    3. Once an async function's try/catch handles an error, the
-//       function's OWN returned promise is no longer rejected —
-//       outside .catch() chains won't fire anymore after that
-//    4. Name variables after what they actually hold, not what
-//       you plan to extract from them later
-//    5. A closure's private variable and a function's PARAMETER can
-//       have similar names but are completely different variables —
-//       don't assume touching one affects the other
-//    6. Logging a promise directly shows "Promise {<pending>}" —
-//       always await it or chain .then() before expecting the
-//       resolved value
-//    ------------------------------------------------------------ */
+function makeAdder(x) {
+  return function (y) {
+    return x + y;
+  };
+}
+const add5 = makeAdder(5);
+console.log(add5(3)); // 8
+console.log(add5(10)); // 15
+
+function createBudgetTracker(startingBalance) {
+  let balance = startingBalance;
+  return {
+    spend: function (amount) {
+      balance -= amount;
+      return balance;
+    },
+    add: function (amount) {
+      balance += amount;
+      return balance;
+    },
+    getBalance: function () {
+      return balance;
+    },
+  };
+}
+
+const trackerA = createBudgetTracker(1000);
+const trackerB = createBudgetTracker(500);
+trackerA.spend(200);
+trackerB.add(300);
+console.log(trackerA.getBalance()); // 800
+console.log(trackerB.getBalance()); // 800 (coincidentally same number, but independent balances)
+
+/* ------------------------------------------------------------
+   SUMMARY OF THE ACTUAL PATTERNS TO INTERNALIZE
+   ------------------------------------------------------------
+   1. Hoisting gives UNDEFINED at the memory phase, not the
+      eventual value — don't assume a variable "already has its
+      value" just because it was declared earlier in the file
+   2. map() must RETURN something per element — if you're just
+      doing a side effect (like printing), use forEach() instead
+   3. Once an async function's try/catch handles an error, the
+      function's OWN returned promise is no longer rejected —
+      outside .catch() chains won't fire anymore after that
+   4. Name variables after what they actually hold, not what
+      you plan to extract from them later
+   5. A closure's private variable and a function's PARAMETER can
+      have similar names but are completely different variables —
+      don't assume touching one affects the other
+   6. Logging a promise directly shows "Promise {<pending>}" —
+      always await it or chain .then() before expecting the
+      resolved value
+   ------------------------------------------------------------ */
+
 
 /* ================================================================
    ASSIGNMENT 2 — Event Loop, setTimeout, Callbacks, Closures
@@ -169,28 +208,33 @@
    ================================================================ */
 
 /*
-// 1
-// 4
-// 3
-// 5
-// 2
-// var loop:3
-// var loop:3
-// var loop:3
-// let loop:0
-// let loop:1
-// let loop:2
-// first console log then promise then settimeout with 0 second then var loop then let loop
-// */
-// function delayedSequence(items) {
-//   for (let i = 0; i < items.length; i++) {
-//     setTimeout(() => {
-//       console.log(`items[${i}] at ${i}s time is ${new Date().toTimeString()}`);
-//     }, i * 1000);
-//   }
-// }
-// let arr=["item1","item2","item3","item4","item5",]
-// delayedSequence(arr);
+   MY PREDICTION (original, before correction):
+   first console log then promise then settimeout with 0 second
+   then var loop then let loop
+
+   CORRECTED ORDER:
+   1
+   4
+   3
+   5
+   2
+   var loop: 3
+   var loop: 3
+   var loop: 3
+   let loop: 0
+   let loop: 1
+   let loop: 2
+*/
+
+function delayedSequence(items) {
+  for (let i = 0; i < items.length; i++) {
+    setTimeout(() => {
+      console.log(`items[${i}] at ${i}s time is ${new Date().toTimeString()}`);
+    }, i * 1000);
+  }
+}
+let arr = ["item1", "item2", "item3", "item4", "item5"];
+delayedSequence(arr);
 
 
 /* ================================================================
@@ -249,71 +293,78 @@
    (that would be sequential, not parallel — think about why).
    ================================================================ */
 
-// function fetchUser(id) {
-//   return new Promise(function (resolve, reject) {
-//     setTimeout(() => {
-//       if (id <= 0) {
-//         reject(new Error("Invalid User"));
-//       } else {
-//         resolve({ id: id, name: "user " + id });
-//       }
-//     }, 500); 
-//   });
-// }
+function fetchUser(id) {
+  return new Promise(function (resolve, reject) {
+    setTimeout(() => {
+      if (id <= 0) {
+        reject(new Error("Invalid User"));
+      } else {
+        resolve({ id: id, name: "user " + id });
+      }
+    }, 500);
+  });
+}
 
-// function fetchOrders(userId, orderList) {
-//   return new Promise((resolve) => {
-//     setTimeout(() => {
-//       resolve({ id: userId, orders: orderList });
-//     }, 300); 
-//   });
-// }
+function fetchOrders(userId, orderList) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ id: userId, orders: orderList });
+    }, 300);
+  });
+}
 
-// async function getUserWithOrders(id, orderList) {
-//   try {
-//     const user = await fetchUser(id);
-//     // MISTAKE (your version): you named this "userId" even though
-//     // it holds the WHOLE user object ({ id, name }), not just the
-//     // id. This is exactly how naming bugs hide in real code — later
-//     // someone (or future you) reads "userId.name" and gets
-//     // confused about what's actually stored there. Name variables
-//     // after what they actually ARE, not after what you expect to
-//     // extract from them later.
-//     const orderData = await fetchOrders(user.id, orderList);
-//     return { user, orders: orderData.orders };
-//   } catch (err) {
-//     console.log(err.message);
-//     // MISTAKE (your version): you logged the error here, but the
-//     // function then returns undefined implicitly (no return
-//     // statement in the catch block). The assignment specifically
-//     // asked for the function to return null on failure, so that
-//     // WHOEVER CALLS this function can reliably check
-//     // "if (result === null)" instead of getting an unpredictable
-//     // undefined that might be confused with "not yet resolved."
-//     return null;
-//   }
-// }
+async function getUserWithOrders(id, orderList) {
+  try {
+    const user = await fetchUser(id);
+    // MISTAKE (my original version): I named this "userId" even
+    // though it holds the WHOLE user object ({ id, name }), not
+    // just the id. This is exactly how naming bugs hide in real
+    // code — later someone (or future me) reads "userId.name" and
+    // gets confused about what's actually stored there. Name
+    // variables after what they actually ARE, not after what I
+    // expect to extract from them later.
+    const orderData = await fetchOrders(user.id, orderList);
+    return { user, orders: orderData.orders };
+  } catch (err) {
+    console.log(err.message);
+    // MISTAKE (my original version): I logged the error here, but
+    // the function then returns undefined implicitly (no return
+    // statement in the catch block). The assignment specifically
+    // asked for the function to return null on failure, so that
+    // WHOEVER CALLS this function can reliably check
+    // "if (result === null)" instead of getting an unpredictable
+    // undefined that might be confused with "not yet resolved."
+    return null;
+  }
+}
 
-// const orderList = ["order1", "order2", "order3"];
+const orderList = ["order1", "order2", "order3"];
 
-// // valid id:
-// getUserWithOrders(5, orderList).then((result) => {
-//   console.log("Valid id result:", result);
-// });
+// valid id:
+getUserWithOrders(5, orderList).then((result) => {
+  console.log("Valid id result:", result);
+});
 
-// // invalid id:
-// getUserWithOrders(-2, orderList).then((result) => {
-//   // MISTAKE (your version): you chained BOTH .then() AND .catch()
-//   // onto fetchans(), expecting .catch() to fire on failure. But
-//   // your try/catch INSIDE the async function already caught the
-//   // rejection — by the time .then()/.catch() run on the OUTSIDE,
-//   // the promise has already resolved successfully (with the value
-//   // "undefined", or now "null" after the fix), so .catch() never
-//   // fires. Once an error is caught INSIDE an async function, the
-//   // async function's own returned promise is no longer rejected —
-//   // it's just resolved with whatever the catch block returns.
-//   console.log("Invalid id result:", result); // null
-// });
+// invalid id:
+getUserWithOrders(-2, orderList).then((result) => {
+  // MISTAKE (my original version): I chained BOTH .then() AND
+  // .catch() onto this call, expecting .catch() to fire on
+  // failure. But the try/catch INSIDE the async function already
+  // caught the rejection — by the time .then()/.catch() run on
+  // the OUTSIDE, the promise has already resolved successfully
+  // (with the value "undefined", or now "null" after the fix), so
+  // .catch() never fires. Once an error is caught INSIDE an async
+  // function, the async function's own returned promise is no
+  // longer rejected — it's just resolved with whatever the catch
+  // block returns.
+  console.log("Invalid id result:", result); // null
+});
+
+async function getMultipleUsers(ids) {
+  const promises = ids.map((id) => fetchUser(id));
+  return Promise.all(promises);
+}
+getMultipleUsers([1, 2, 3]).then((users) => console.log(users));
 
 
 /* ================================================================
@@ -356,66 +407,62 @@
       it to extract just the ids of all products.
    ================================================================ */
 
-// const products = [
-//   {
-//     id: 1,
-//     name: "Laptop",
-//     price: 55000,
-//     category: "electronics",
-//     inStock: true,
-//   },
-//   { id: 2, name: "Desk", price: 8000, category: "furniture", inStock: false },
-//   { id: 3, name: "Mouse", price: 500, category: "electronics", inStock: true },
-//   { id: 4, name: "Chair", price: 4500, category: "furniture", inStock: true },
-//   {
-//     id: 5,
-//     name: "Monitor",
-//     price: 12000,
-//     category: "electronics",
-//     inStock: false,
-//   },
-// ];
+const products = [
+  { id: 1, name: "Laptop", price: 55000, category: "electronics", inStock: true },
+  { id: 2, name: "Desk", price: 8000, category: "furniture", inStock: false },
+  { id: 3, name: "Mouse", price: 500, category: "electronics", inStock: true },
+  { id: 4, name: "Chair", price: 4500, category: "furniture", inStock: true },
+  { id: 5, name: "Monitor", price: 12000, category: "electronics", inStock: false },
+];
 
-// const inStockNames = products
-//   .filter((p) => p.inStock === true)
-//   .map((p) => p.name);
-//   // MISTAKE (your version): your .map() callback did
-//   // `console.log(y.name)` but had NO return statement — so map()
-//   // collected "undefined" for every item (since a function with no
-//   // explicit return gives back undefined). map() is for
-//   // TRANSFORMING each element into something new that you RETURN;
-//   // if you just want to print each one as a side effect with no
-//   // new array needed, that's what forEach() is for, not map().
-// console.log(inStockNames); // ["Laptop", "Mouse", "Chair"]
+const inStockNames = products
+  .filter((p) => p.inStock === true)
+  .map((p) => p.name);
+  // MISTAKE (my original version): my .map() callback did
+  // `console.log(y.name)` but had NO return statement — so map()
+  // collected "undefined" for every item (since a function with no
+  // explicit return gives back undefined). map() is for
+  // TRANSFORMING each element into something new that you RETURN;
+  // if I just want to print each one as a side effect with no new
+  // array needed, that's what forEach() is for, not map().
+console.log(inStockNames); // ["Laptop", "Mouse", "Chair"]
 
-// const totalprice = products
-//   .filter((x) => x.inStock === true)
-//   .reduce((acc, curr) => {
-//     return acc + curr.price;
-//   }, 0);
-// console.log(totalprice);
+const totalprice = products
+  .filter((x) => x.category === "electronics")
+  .reduce((acc, curr) => acc + curr.price, 0);
+console.log(totalprice);
 
-// const Group = products.reduce(
-//   (acc, curr) => {
-//     if (curr.category === "electronics") {
-//       acc.electronics.push(curr);
-//     } else {
-//       acc.furniture.push(curr);
-//     }
-//     return acc;
-//   },
-//   { electronics: [], furniture: [] },
-// );
-// console.log(Group);
+const groupedByCategory = products.reduce(
+  (acc, curr) => {
+    if (curr.category === "electronics") {
+      acc.electronics.push(curr);
+    } else {
+      acc.furniture.push(curr);
+    }
+    return acc;
+  },
+  { electronics: [], furniture: [] },
+);
+console.log(groupedByCategory);
 
-// const expensive = products.reduce((acc, curr) => {
-//   if (curr.price > acc) {
-//     return curr;
-//   } else {
-//     return acc;
-//   }
-// }, products[0]);
-// console.log(expensive);
+const mostExpensive = products.reduce((acc, curr) => {
+  if (curr.price > acc.price) {
+    return curr;
+  } else {
+    return acc;
+  }
+}, products[0]);
+console.log(mostExpensive);
+
+function summarize(items, logic) {
+  let result = [];
+  for (let i = 0; i < items.length; i++) {
+    result.push(logic(items[i]));
+  }
+  return result;
+}
+const allIds = summarize(products, (p) => p.id);
+console.log(allIds);
 
 
 /* ================================================================
@@ -469,108 +516,107 @@
      - Each user got the correct auto-incremented id
    ================================================================ */
 
-// function createUserStore() {
-//   let users = [];
-//   let nextId = 1;
+function createUserStore() {
+  let users = [];
+  let nextId = 1;
 
-//   return {
-//     addUser: function (userData) {
-//       const newUser = { id: nextId, ...userData };
-//       users.push(newUser);
-//       nextId++;
-//       return newUser;
-//     },
-//     getUserById: function (id) {
-//       return users.find((u) => u.id === id); // find() returns ONE object or
-//       // undefined — your original used filter(), which returns an
-//       // ARRAY (even if it has just one item). Not a bug exactly,
-//       // but find() is the more correct tool for "get exactly one
-//       // matching item," matching what the assignment asked for.
-//     },
-//     getAllUsers: function () {
-//       return users;
-//     },
-//     deleteUser: function (id) {
-//       const originalLength = users.length;
-//       users = users.filter((u) => u.id !== id);
-//       // MISTAKE (your version): you wrote "id--" here, intending to
-//       // roll back the auto-increment counter. But "id" here is the
-//       // FUNCTION'S PARAMETER (whatever id was passed in to delete),
-//       // NOT the closure's "nextId" counter used in addUser — these
-//       // are two completely different variables that happen to have
-//       // similar names. Decrementing the parameter does nothing
-//       // useful at all. The FIX is simpler than trying to repair
-//       // it: just don't touch nextId on delete. New users should
-//       // keep getting fresh, never-reused ids, even after a
-//       // deletion — reusing ids after deletes is what actually
-//       // causes bugs (e.g. two different "user #3"s existing at
-//       // different points in time).
-//       return users.length < originalLength; // true if something was removed
-//     },
-//   };
-// }
+  return {
+    addUser: function (userData) {
+      const newUser = { id: nextId, ...userData };
+      users.push(newUser);
+      nextId++;
+      return newUser;
+    },
+    getUserById: function (id) {
+      return users.find((u) => u.id === id);
+      // find() returns ONE object or undefined — my original used
+      // filter(), which returns an ARRAY (even if it has just one
+      // item). Not a bug exactly, but find() is the more correct
+      // tool for "get exactly one matching item," matching what
+      // the assignment asked for.
+    },
+    getAllUsers: function () {
+      return users;
+    },
+    deleteUser: function (id) {
+      const originalLength = users.length;
+      users = users.filter((u) => u.id !== id);
+      // MISTAKE (my original version): I wrote "id--" here,
+      // intending to roll back the auto-increment counter. But
+      // "id" here is the FUNCTION'S PARAMETER (whatever id was
+      // passed in to delete), NOT the closure's "nextId" counter
+      // used in addUser — these are two completely different
+      // variables that happen to have similar names. Decrementing
+      // the parameter does nothing useful at all. The FIX is
+      // simpler than trying to repair it: just don't touch nextId
+      // on delete. New users should keep getting fresh,
+      // never-reused ids, even after a deletion — reusing ids
+      // after deletes is what actually causes bugs (e.g. two
+      // different "user #3"s existing at different points in time).
+      return users.length < originalLength; // true if something was removed
+    },
+  };
+}
 
-// function simulateSignup(store, userData) {
-//   return new Promise((resolve, reject) => {
-//     setTimeout(() => {
-//       const { name, email } = userData;
-//       if (name && email) {
-//         resolve(store.addUser(userData));
-//       } else {
-//         reject(new Error("Invalid user: name and email are both required"));
-//       }
-//     }, 500);
-//   });
-// }
-// // MISTAKE (your version): simulateSignup() used the OUTER "user"
-// // variable directly (store.addUser(userData) was store's own
-// // closure, fine) — but note your ORIGINAL code called
-// // user.addUser(userData) referencing a store from OUTSIDE the
-// // function entirely, meaning simulateSignup could only EVER work
-// // with that one hardcoded store. Passing "store" in as a PARAMETER
-// // (as done here, and as the assignment asked) makes this function
-// // reusable with ANY store, not locked to one global instance.
+function simulateSignup(store, userData) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const { name, email } = userData;
+      if (name && email) {
+        resolve(store.addUser(userData));
+      } else {
+        reject(new Error("Invalid user: name and email are both required"));
+      }
+    }, 500);
+  });
+}
+// MISTAKE (my original version): simulateSignup() referenced a
+// store from OUTSIDE the function entirely (a global "user"
+// variable), meaning simulateSignup could only EVER work with
+// that one hardcoded store. Passing "store" in as a PARAMETER (as
+// done here, and as the assignment asked) makes this function
+// reusable with ANY store, not locked to one global instance.
 
-// async function runSignupFlow() {
-//   const store = createUserStore();
+async function runSignupFlow() {
+  const store = createUserStore();
 
-//   const signups = [
-//     { name: "Rehan", email: "rehan@example.com" },
-//     { name: "Alok" }, // deliberately invalid — missing email
-//     { name: "Ashish", email: "ashish@example.com" },
-//   ];
+  const signups = [
+    { name: "Rehan", email: "rehan@example.com" },
+    { name: "Alok" }, // deliberately invalid — missing email
+    { name: "Ashish", email: "ashish@example.com" },
+  ];
 
-//   for (const userData of signups) {
-//     try {
-//       const newUser = await simulateSignup(store, userData);
-//       console.log("Signed up:", newUser);
-//     } catch (err) {
-//       console.log("Signup failed:", err.message);
-//       // try/catch INSIDE the loop means one failure doesn't stop
-//       // the loop — the next iteration still runs
-//     }
-//   }
+  for (const userData of signups) {
+    try {
+      const newUser = await simulateSignup(store, userData);
+      console.log("Signed up:", newUser);
+    } catch (err) {
+      console.log("Signup failed:", err.message);
+      // try/catch INSIDE the loop means one failure doesn't stop
+      // the loop — the next iteration still runs
+    }
+  }
 
-//   console.log("Final users in store:", store.getAllUsers());
-// }
+  console.log("Final users in store:", store.getAllUsers());
+}
 
-// runSignupFlow();
-// // MISTAKE (your version): you called simulateSignup() directly and
-// // did `console.log(simulate)` immediately — but simulateSignup()
-// // RETURNS A PROMISE, so that line just logs "Promise {<pending>}",
-// // not the actual result. You also never wrote runSignupFlow() at
-// // all, which was the actual point of the assignment (running
-// // THREE signups, with error handling around EACH one individually,
-// // then showing the final state). Always either .then() a promise,
-// // or await it inside an async function, before trying to log its
-// // resolved value — logging the promise object itself is one of the
-// // most common beginner mistakes with async code.
-
-
+runSignupFlow();
+// MISTAKE (my original version): I called simulateSignup()
+// directly and did `console.log(simulate)` immediately — but
+// simulateSignup() RETURNS A PROMISE, so that line just logs
+// "Promise {<pending>}", not the actual result. I also never
+// wrote runSignupFlow() at all, which was the actual point of the
+// assignment (running THREE signups, with error handling around
+// EACH one individually, then showing the final state). Always
+// either .then() a promise, or await it inside an async function,
+// before trying to log its resolved value — logging the promise
+// object itself is one of the most common beginner mistakes with
+// async code.
 
 
-/* ============================================================
+/* ================================================================
    ASSIGNMENT 6 — Coverage Round
+   ================================================================ */
 
 /* ------------------------------------------------------------
    PART A — Hoisting: predict, then verify
@@ -599,6 +645,18 @@
    Temporal Dead Zone — something NOT covered yet in your files,
    look it up as part of this exercise, it's a small addition to
    hoisting you already know.)
+
+   MY ANSWER (original, before revising):
+     undefined
+     undefined  <- I did not revise TDZ, let vs var
+     NaN
+
+   Actual behavior: console.log(y) should THROW a
+   ReferenceError ("Cannot access 'y' before initialization"),
+   not log undefined — because `let`/`const` are hoisted but land
+   in the Temporal Dead Zone until their declaration line runs.
+   `var` is hoisted AND initialized to undefined immediately, so
+   accessing it early just gives undefined instead of throwing.
    ------------------------------------------------------------ */
 
 /* ------------------------------------------------------------
@@ -622,6 +680,18 @@
       identical), what would the resulting variable actually
       contain, and why?
    ------------------------------------------------------------ */
+
+const temps = [30, 25, 40, 15, 35]; // Celsius
+
+temps.forEach((x) => console.log(x * (9 / 5) + 32));
+
+const fahrenheit = temps.map((x) => x * (9 / 5) + 32);
+console.log(fahrenheit);
+
+// MY ANSWER: swapping map() for forEach() here would make the
+// variable hold `undefined` — forEach() always returns undefined
+// regardless of what the callback returns, since forEach() is
+// built purely for side effects and never collects a new array.
 
 /* ------------------------------------------------------------
    PART C — async try/catch: make the OUTER catch actually fire
@@ -660,6 +730,45 @@
    behavior between these two functions.
    ------------------------------------------------------------ */
 
+function riskyOperation(shouldFail) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (shouldFail) reject(new Error("Operation failed"));
+      else resolve("Operation succeeded");
+    }, 300);
+  });
+}
+
+async function swallowsError(shouldFail) {
+  try {
+    const result = await riskyOperation(shouldFail);
+    return result;
+  } catch (err) {
+    console.log(err.message);
+    return null;
+  }
+}
+swallowsError(true).then((r) => console.log(r));
+swallowsError(true).catch((e) => console.log("caught outside?"));
+// PREDICTION: no — the outer .catch() never fires, since the
+// try/catch inside already handled the rejection and the
+// function's returned promise resolves (with null), it never rejects.
+
+async function letsErrorPropagate(shouldFail) {
+  const result = await riskyOperation(shouldFail);
+  return result;
+}
+letsErrorPropagate(true)
+  .then((r) => console.log(r))
+  .catch((e) => console.log("caught outside:", e.message));
+// PREDICTION: yes — with no internal try/catch, the rejection
+// propagates out and the outer .catch() runs.
+
+// One-sentence difference: swallowsError() handles the rejection
+// internally so its own promise always resolves, while
+// letsErrorPropagate() has nothing to intercept the rejection so
+// it passes straight through to the caller's .catch().
+
 /* ------------------------------------------------------------
    PART D — Naming discipline: refactor for clarity
    ------------------------------------------------------------
@@ -677,6 +786,18 @@
        return { data: name, extra: list.orders };
      }
    ------------------------------------------------------------ */
+
+async function processUser(id) {
+  const user = await fetchUser(id); // renamed from "name" — it's the whole user object
+  const orderData = await fetchOrders(user.id); // renamed from "list" — it's an object, not an array
+  return { data: user, extra: orderData.orders };
+}
+
+// What was misleading:
+//   "name" actually held { id, name } — a whole user object, not
+//     a name string.
+//   "list" actually held { id, orders } — an object wrapping the
+//     orders array, not the array itself.
 
 /* ------------------------------------------------------------
    PART E — Closure variable vs parameter shadowing
@@ -699,6 +820,45 @@
    the function if you needed to refer to BOTH inside the same
    method?
    ------------------------------------------------------------ */
+
+// MISTAKE (my original version): I wrote `stock += stock` inside
+// restock(), which only doubles the PARAMETER and never touches
+// the closure's outer `stock` at all — so getStock() never
+// changed. The fix is to rename either the parameter or wrap the
+// state in an object (like `this.count` in Part 7 below) so both
+// variables are reachable at once.
+
+function createInventory() {
+  let stock = 0;
+  return {
+    restock: function (amount) {
+      stock += amount;
+      return stock;
+    },
+    sell: function (amount) {
+      stock -= amount;
+      return stock;
+    },
+    getStock: function () {
+      return stock;
+    },
+  };
+}
+
+const inv = createInventory();
+console.log(inv.getStock()); // 0
+console.log(inv.restock(500)); // 500
+console.log(inv.getStock()); // 500
+console.log(inv.sell(200)); // 300
+console.log(inv.getStock()); // 300
+
+// ANSWER: inside the ORIGINAL shadowed version, "stock" inside
+// restock() refers to the PARAMETER — a same-named parameter
+// always shadows the outer closure variable inside that function's
+// scope. To refer to BOTH inside the same method, you need to give
+// them different names (as done above), or attach the closure
+// variable to an object property (e.g. `this.stock`) so the
+// parameter and the property are accessed differently.
 
 /* ------------------------------------------------------------
    PART F — Never log a promise directly
@@ -725,123 +885,42 @@
    yourself), and comment on what it prints.
    ------------------------------------------------------------ */
 
-/*
-// undefined
-// undefined i do not revise tdz let vs var
-// NaN
-// */
+function getRandomNumber() {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(Math.floor(Math.random() * 100)), 200);
+  });
+}
 
-// const temps = [30, 25, 40, 15, 35]; // Celsius
+// 1. .then()
+getRandomNumber().then((r) => console.log(r));
 
-// temps.forEach((x) => console.log(x * (9 / 5) + 32));
-// // foreach transform array not giving brand new array
+// 2. async IIFE
+(async () => {
+  const result1 = await getRandomNumber();
+  console.log(result1);
+})();
 
-// const Fahrenheit = temps.map((x) => x * (9 / 5) + 32);
-// console.log(Fahrenheit);
+// 3. named async function, explicitly called
+async function callRandom() {
+  const result2 = await getRandomNumber();
+  return result2;
+}
+callRandom().then((r) => console.log(r));
 
-// // replacing map with foreach give undefine as foreach only tranform
-
-// function riskyOperation(shouldFail) {
-//   return new Promise((resolve, reject) => {
-//     setTimeout(() => {
-//       if (shouldFail) reject(new Error("Operation failed"));
-//       else resolve("Operation succeeded");
-//     }, 300);
-//   });
-// }
-
-// async function swallowsError(shouldFail) {
-//   try {
-//     const result = await riskyOperation(shouldFail);
-//     return result;
-//   } catch (err) {
-//     console.log(err.message);
-//     return null;
-//   }
-// }
-// swallowsError(true).then((r) => console.log(r));
-// swallowsError(true).catch((e) => console.log("caught"));
-
-// async function letsErrorPropagate(shouldFail) {
-//   const result = await riskyOperation(shouldFail);
-//   return result;
-// }
-// letsErrorPropagate(true)
-//   .then((r) => console.log(r))
-//   .catch((e) => console.log("caught"));
-// letsErrorPropagate(true).catch((e) => console.log("caught"));
-
-// async function process(id) {
-//   const name = await fetchUser(id); // holds a whole object, not a name
-//   const list = await fetchOrders(name.id); // "list" holds an object too, not an array
-//   return { data: name, extra: list.orders };
-// }
-
-// // name-user
-// // name.id-user.id
-// // list-orderlist
-// // extra-order
-// // orderlist.orders
-
-// function createInventory() {
-//   let stock = 0;
-//   return {
-//     restock: function (stock) {
-//       stock += stock;
-//       return stock;
-//     },
-//     sell: function (stock) {
-//       stock -= stock;
-//     },
-//     getstock: function () {
-//       return stock;
-//     },
-//   };
-// }
-
-// const inv = createInventory();
-// console.log(inv.getstock());
-// console.log(inv.restock(500));
-// console.log(inv.getstock());
-
-// console.log(inv.restock(500));
-
-// console.log(inv.getstock());
-
-// function getRandomNumber() {
-//   return new Promise((resolve) => {
-//     setTimeout(() => resolve(Math.floor(Math.random() * 100)), 200);
-//   });
-// }
-
-// getRandomNumber().then((r) => console.log(r));
-
-// (async () => {
-//   const result1 = await getRandomNumber();
-//   console.log(result1);
-// })();
-
-// async function call() {
-//   const result2 = await getRandomNumber();
-//   return result2;
-// }
-// call().then((r) => console.log(r));
-
-// console.log(call());
+// 4. logging the promise directly (WRONG, on purpose)
+console.log(callRandom());
+// Prints: Promise { <pending> } — because callRandom() returns a
+// promise immediately, and the console.log() runs synchronously
+// before the 200ms setTimeout inside getRandomNumber() has
+// resolved anything.
 
 
-/* ============================================================
-   ASSIGNMENT 7
-   ============================================================ */
-
-
-/*
-   THE SCENARIO:
-   You're building a tiny in-memory "order processing system" for
-   a shop. Orders come in, get validated, get priced, get logged,
-   and get summarized.
-*/
-
+/* ================================================================
+   ASSIGNMENT 7 — Order Processing System (IN PROGRESS)
+   ================================================================
+   SCENARIO: a tiny in-memory "order processing system" for a shop.
+   Orders come in, get validated, priced, logged, and summarized.
+   ================================================================ */
 
 /* ------------------------------------------------------------
    PART 1 — Hoisting + Execution Context, predicted cold
@@ -861,11 +940,15 @@
    If your two predictions don't match what you'd expect from
    "memory phase runs before code phase," write one sentence
    explaining the mismatch.
+
+   MY PREDICTION:
+     // undefined
+     // welcome to undefined
    ------------------------------------------------------------ */
 
 
 /* ------------------------------------------------------------
-   PART 2 — The order data (copy this, it's scaffolding)
+   PART 2 — The order data (scaffolding — copy as-is)
    ------------------------------------------------------------ */
 
 const rawOrders = [
@@ -900,6 +983,23 @@ const rawOrders = [
    PREDICT the allTotals array before running.
    ------------------------------------------------------------ */
 
+function calculateOrderTotal(order) {
+  const itemarray = order.items;
+  const price = itemarray.map((x) => x.price * x.qty);
+  const totalprice = price.reduce((acc, curr) => acc + curr, 0);
+  return totalprice;
+}
+console.log(calculateOrderTotal(rawOrders[2]));
+
+function applyToEachOrder(orders, logic) {
+  let ans = [];
+  for (let i = 0; i < orders.length; i++) {
+    ans.push(logic(orders[i]));
+  }
+  return ans;
+}
+console.log(applyToEachOrder(rawOrders, calculateOrderTotal));
+
 
 /* ------------------------------------------------------------
    PART 4 — A closure-based logger, using callbacks
@@ -919,6 +1019,34 @@ const rawOrders = [
    printLog with a callback that wraps each message like
    "[LOG] <message>".
    ------------------------------------------------------------ */
+
+function createOrderLogger() {
+  let log = [];
+  return {
+    record: function (entry) {
+      log.push(entry);
+    },
+    getLog: function () {
+      return log;
+    },
+    printLog: function (formatterCallback) {
+      for (let i = 0; i < log.length; i++) {
+        console.log(formatterCallback(log[i]));
+      }
+    },
+  };
+}
+
+function formatterCallback(entry) {
+  return `[LOG] ${entry}`;
+}
+
+const myLogger = createOrderLogger();
+myLogger.record("Order 101 placed by Alok");
+myLogger.record("Payment received for Order 102");
+myLogger.record("Order 103 items are out of stock");
+myLogger.printLog(formatterCallback);
+console.log(myLogger.getLog());
 
 
 /* ------------------------------------------------------------
@@ -945,6 +1073,26 @@ const rawOrders = [
        { customer, total }
    ------------------------------------------------------------ */
 
+async function validateOrder(order) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (order.items.length === 0) {
+        reject(new Error(`Invalid Order for ${order.customer}`));
+      } else {
+        resolve(order);
+      }
+    }, 500);
+  });
+}
+
+async function processOrder(order, logger) {
+  let validatedOrder = await validateOrder(order);
+  const total = calculateOrderTotal(validatedOrder);
+  const { customer } = validatedOrder;
+  logger.record(`Processed Order For ${customer}. Total: ₹${total}`);
+  return { customer, total };
+}
+
 
 /* ------------------------------------------------------------
    PART 6 — Run all orders in PARALLEL, using the right Promise API
@@ -969,6 +1117,18 @@ const rawOrders = [
    ONE entry looks different from the other three, before running.
    ------------------------------------------------------------ */
 
+async function processAllOrders(orders, logger) {
+  const promises = orders.map((order) => processOrder(order, logger));
+  const settled = await Promise.allSettled(promises);
+  return settled.map((result, i) => {
+    if (result.status === "fulfilled") {
+      return result.value;
+    }
+    return { customer: orders[i].customer, error: result.reason.message };
+  });
+}
+processAllOrders(rawOrders, myLogger).then((r) => console.log(r));
+
 
 /* ------------------------------------------------------------
    PART 7 — A closure counter WITH a shadowing trap (build it
@@ -991,6 +1151,27 @@ const rawOrders = [
    success or fail), then getCount() — predict the output first.
    ------------------------------------------------------------ */
 
+function createOrderCounter() {
+  const counterObj = {
+    count: 0,
+    recordOrder: function (count) {
+      this.count++; // reaches the object's own property via `this`,
+      // bypassing the shadowed parameter entirely
+    },
+    getCount: function () {
+      return this.count;
+    },
+  };
+  return counterObj;
+}
+
+const orderCounter = createOrderCounter();
+orderCounter.recordOrder(1);
+orderCounter.recordOrder(5);
+orderCounter.recordOrder(1);
+orderCounter.recordOrder(4);
+console.log(orderCounter.getCount()); // 4
+
 
 /* ------------------------------------------------------------
    PART 8 — `this`, call/apply/bind, tying into your logger
@@ -1009,6 +1190,21 @@ const rawOrders = [
         with the right prefix, without modifying reportPrinter or
         detachedPrint's original definition.
    ------------------------------------------------------------ */
+
+const reportPrinter = {
+  prefix: "[SHOP REPORT] ",
+  print: function (message) {
+    console.log(this.prefix + message);
+  },
+};
+
+// TODO: 1. reportPrinter.print("test")
+// TODO: 2. const detachedPrint = reportPrinter.print; detachedPrint("test")
+//          predict: "this" will be undefined (or the global object in
+//          non-strict mode), NOT reportPrinter, since a plain call
+//          loses the object it was called on
+// TODO: 3. fix with detachedPrint.call(reportPrinter, "test")
+//          or const bound = reportPrinter.print.bind(reportPrinter)
 
 
 /* ------------------------------------------------------------
@@ -1034,6 +1230,8 @@ const rawOrders = [
        "[SHOP REPORT] " prefix intact
    ------------------------------------------------------------ */
 
+// TODO: build the async IIFE tying Parts 4, 6, 7, 8 together
+
 
 /* ------------------------------------------------------------
    SELF-CHECK BEFORE YOU CONSIDER THIS DONE
@@ -1057,140 +1255,3 @@ const rawOrders = [
    If any answer is "no" or "not sure," that's the ONE topic
    worth re-reading — not the whole file.
    ------------------------------------------------------------ */
-
-
-   /*
-// underfined
-// welcome to undefined
-// */
-
-// const rawOrders = [
-//   {
-//     orderId: 1,
-//     customer: "Alok",
-//     items: [
-//       { name: "Pen", price: 20, qty: 5 },
-//       { name: "Notebook", price: 60, qty: 2 },
-//     ],
-//   },
-//   {
-//     orderId: 2,
-//     customer: "Ashish",
-//     items: [{ name: "Bag", price: 800, qty: 1 }],
-//   },
-//   { orderId: 3, customer: "Ankit", items: [] }, // deliberately empty — no items
-//   {
-//     orderId: 4,
-//     customer: "Pranav",
-//     items: [
-//       { name: "Bottle", price: 150, qty: 3 },
-//       { name: "Pen", price: 20, qty: 10 },
-//     ],
-//   },
-// ];
-
-// function calculateOrderTotal(order) {
-//   const itemarray = order.items;
-//   // console.log(itemarray)
-//   const price = itemarray.map((x) => x.price * x.qty);
-//   // console.log(price)
-//   const totalprice = price.reduce((acc, curr) => {
-//     return acc + curr;
-//   }, 0);
-//   // console.log(totalprice)
-//   return totalprice;
-// }
-// console.log(calculateOrderTotal(rawOrders[2]));
-
-// // logic based
-
-// function applyToEachOrder2(orders, logic) {
-//   let ans = [];
-//   for (let i = 0; i < orders.length; i++) {
-//     ans.push(logic(orders[i]));
-//   }
-//   return ans;
-// }
-// console.log(applyToEachOrder2(rawOrders, calculateOrderTotal));
-
-// function createOrderLogger() {
-//   let log = [];
-//   return {
-//     record: function (entry) {
-//       log.push(entry);
-//     },
-//     getlog: function () {
-//       return log;
-//     },
-//     printlog: function (formatterCallback) {
-//       for (let i = 0; i < log.length; i++) {
-//         console.log(formatterCallback(log[i]));
-//       }
-//     },
-//   };
-// }
-
-// function formatterCallback(entry) {
-//   return `[LOG] ${entry}`;
-// }
-
-// const myLogger = createOrderLogger();
-
-// myLogger.record("Order 101 placed by Alok");
-// myLogger.record("Payment received for Order 102");
-// myLogger.record("Order 103 items are out of stock");
-
-// myLogger.printlog(formatterCallback);
-// console.log(myLogger.getlog());
-
-// async function validateOrder(order) {
-//   return new Promise((resolve, reject) => {
-//     setTimeout(() => {
-//       if (order.items.length === 0) {
-//         reject(new Error(`Invalid Order for ${order.customer}`));
-//       } else {
-//         resolve(order);
-//       }
-//     }, 500);
-//   });
-// }
-
-// async function processOrder(order, logger) {
-//   let validatedOrder = await validateOrder(order);
-//   const total = calculateOrderTotal(validatedOrder);
-//   const { customer } = validatedOrder;
-//   logger.record(`Processed Order For ${customer}. Total: ₹$${total}`);
-//   return { customer, total };
-// }
-// processOrder(rawOrders[0], myLogger).then((r) => console.log(r));
-
-// async function processAllOrders(orders, logger) {
-//   const promises = orders.map((order) => processOrder(order, logger));
-//   const settle = await Promise.allSettled(promises);
-//   return settle.map((x) => x.value || x.reason);
-// }
-// processAllOrders(rawOrders, myLogger).then((r) => console.log(r));
-
-// function createOrderCounter() {
-//   const counterobj = {
-//     count: 0,
-//     recordOrder: function (count) {
-//       this.count++; 
-//     },
-//     getCount: function () {
-//       return this.count;
-//     },
-//   };
-//   return counterobj;
-// }
-
-// const create = createOrderCounter();
-// create.recordOrder(1);
-// create.recordOrder(5);
-// create.recordOrder(1);
-// create.recordOrder(4);
-
-// console.log(create.getCount()); 
-
-
-
