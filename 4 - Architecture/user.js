@@ -22,6 +22,9 @@ app.post("/login", userController.login);
 app.post("/tasks", authenticateToken, taskController.createTask);
 app.get("/tasks", authenticateToken, taskController.getTask);
 app.get("/tasks/:id", authenticateToken, taskController.getoneTask);
+app.patch("/tasks/:id", authenticateToken, taskController.updateTask);
+app.delete("/tasks/:id", authenticateToken, taskController.deleteTask);
+
 app.listen(port, () => {
   console.log(`server running ${port}`);
 });

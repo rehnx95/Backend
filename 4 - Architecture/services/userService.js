@@ -21,12 +21,13 @@ async function signup(email, password) {
 async function login(email, password) {
   console.log("[service] login called for:", email);
   const user = userRepository.findByEmail(email);
-  if (!user) {
+  const hashToCompare = user
+    ? user.password
+    : "$2b$10$invalidsaltinvalidsaltinvalidsa";
+  const isMatch = await bcrypt.compare(password, hashToCompare);
+
+  if (!user || !isMatch) {
     return { success: false, error: "Unauthorize" };
-  }
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-     return { success: false, error: "Unauthorize" };
   }
   const token = jwt.sign(
     { id: user.id, email: user.email },
