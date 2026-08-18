@@ -11,5 +11,8 @@ function create(user) {
 function count() {
   return users.length;
 }
-module.exports = { findByEmail, create, count };
+function _reset() {
+  users = [];
+}
 
+module.exports = { findByEmail, create, count, _reset };

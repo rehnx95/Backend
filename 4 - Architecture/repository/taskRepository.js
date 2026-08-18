@@ -22,4 +22,8 @@ function count() {
   return tasks.length;
 }
 
-module.exports = { create, getTask, getoneTask, count,deleteTask,updateTask };
+function _reset() {
+  tasks = [];
+}
+
+module.exports = { create, getTask, getoneTask, count, deleteTask, updateTask, _reset };

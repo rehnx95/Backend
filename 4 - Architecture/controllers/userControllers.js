@@ -23,7 +23,11 @@ async function signup(req, res) {
 
 async function login(req, res) {
   console.log("[controller] login hit, body:", req.body);
-  const { email, password } = req.body;
+  const result = signupSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).send(result.error.issues);
+  }
+  const { email, password } = result.data;
   const outcome = await UserService.login(email, password);
   if (outcome.success === false) {
     res.status(401).send(outcome.error);
