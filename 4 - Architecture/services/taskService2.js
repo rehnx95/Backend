@@ -6,7 +6,7 @@ async function createTask(userID, title) {
     title: title,
   };
   const result = await taskRepository.create(newtask);
-  return { success: true, task: result };
+  return { success: true, value: result };
 }
 
 async function getTask(userID, page = 1, limit = 10) {
@@ -20,7 +20,7 @@ async function getTask(userID, page = 1, limit = 10) {
 
   return {
     success: true,
-    data: paginatedTasks,
+    value: paginatedTasks,
     total,
     page,
     totalPages,
@@ -29,12 +29,12 @@ async function getTask(userID, page = 1, limit = 10) {
 
 async function getoneTask(id) {
   const task = await taskRepository.getoneTask(id);
-  return { success: true, task: task };
+  return { success: true, value: task };
 }
 
 async function updateTask(id, title) {
   const result = await taskRepository.updateTask(id, title);
-  return { success: true, task: await taskRepository.getoneTask(id) };
+  return { success: true, value: result };
 }
 
 async function deleteTask(id) {

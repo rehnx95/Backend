@@ -6,7 +6,10 @@ async function getoneTask(id) {
 }
 
 async function deleteTask(id) {
-  await pool.query("DELETE FROM tasks WHERE id=$1", [id]);
+  const result = await pool.query("DELETE FROM tasks WHERE id=$1 returning *", [
+    id,
+  ]);
+  return result.rows[0];
 }
 
 async function getTask(userID) {

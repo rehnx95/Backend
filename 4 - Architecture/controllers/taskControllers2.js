@@ -10,7 +10,7 @@ const taskSchema = z.object({
 async function createTask(req, res) {
   const result = taskSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).json({ success: false, value: result.error.issues });
+    return res.status(400).json({ success: false, error: result.error.issues });
   }
 
   const userID = req.user.id;
@@ -19,7 +19,7 @@ async function createTask(req, res) {
   const outcome = await taskService.createTask(userID, title);
   res.status(201).json({
     success: true,
-    value: `Task Created With Title ${outcome.task.title}`,
+    value: `Task Created With Title ${outcome.value.title}`,
   });
 }
 
@@ -30,7 +30,8 @@ async function getTask(req, res) {
   const outcome = await taskService.getTask(req.user.id, page, limit);
 
   res.status(200).json({
-    data: outcome.data,
+    success:true,
+    value: outcome.value,
     total: outcome.total,
     page: outcome.page,
     totalPages: outcome.totalPages,
@@ -39,10 +40,10 @@ async function getTask(req, res) {
 
 async function getoneTask(req, res) {
   const outcome = await taskService.getoneTask(req.params.id);
-  const task = outcome.task;
+  const task = outcome.value;
 
-  if (!task || task.userID !== req.user.id) {
-    return res.status(404).json({ success: false, value: "Task not found" });
+  if (!task || task.user_id !== req.user.id) {
+    return res.status(404).json({ success: false, error: "Task not found" });
   }
   res.status(200).json({ success: true, value: task });
 }
@@ -50,28 +51,28 @@ async function getoneTask(req, res) {
 async function updateTask(req, res) {
   const result = taskSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).json({ success: false, value: result.error.issues });
+    return res.status(400).json({ success: false, error: result.error.issues });
   }
   const { title } = result.data;
   const id = req.params.id;
   const outcome = await taskService.getoneTask(id);
-  const task = outcome.task;
-  if (!task || task.userID !== req.user.id) {
-    return res.status(404).json({ success: false, value: "Task not found" });
+  const task = outcome.value;
+  if (!task || task.user_id !== req.user.id) {
+    return res.status(404).json({ success: false, error: "Task not found" });
   }
   const updatedtask = await taskService.updateTask(id, title);
-  res.status(200).json({ success: true, value: updatedtask.task });
+  res.status(200).json({ success: true, value: updatedtask.value });
 }
 
 async function deleteTask(req, res) {
   const id = req.params.id;
   const outcome = await taskService.getoneTask(id);
-  const task = outcome.task;
-  if (!task || task.userID !== req.user.id) {
-    return res.status(404).json({ success: false, value: "Task not found" });
+  const task = outcome.value;
+  if (!task || task.user_id !== req.user.id) {
+    return res.status(404).json({ success: false, error: "Task not found" });
   }
   await taskService.deleteTask(id);
-  res.status(204).json();
+  res.status(204).send();
 }
 
 module.exports = { createTask, getTask, getoneTask, deleteTask, updateTask };
