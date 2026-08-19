@@ -9,6 +9,7 @@
   h2 { margin-top: 0; font-size: 16px; }
   input { display: block; width: 100%; margin: 6px 0; padding: 6px; box-sizing: border-box; }
   button { padding: 8px 12px; margin-top: 6px; cursor: pointer; }
+  button.danger { background: #c0392b; color: #fff; border: none; border-radius: 4px; }
   pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; }
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
   .tabs button { margin: 0; padding: 6px 10px; font-size: 13px; background: #eee; border: 1px solid #ccc; border-radius: 4px; }
@@ -47,7 +48,7 @@
   <section>
     <h2>1. Signup</h2>
     <input id="signupEmail" placeholder="email">
-    <input id="signupPassword" placeholder="password" type="password">
+    <input id="signupPassword" placeholder="password (min 6 chars)">
     <button onclick="signup()">Signup</button>
     <pre id="signupResult"></pre>
   </section>
@@ -67,21 +68,66 @@
     <pre id="loginResult"></pre>
     <p><strong>Token in use:</strong></p>
     <pre id="tokenDisplay">(none yet)</pre>
+    <p><strong>Your user id (from last login):</strong></p>
+    <pre id="myIdDisplay">(none yet)</pre>
   </section>
 </div>
 
 <div id="tab-users" class="tabpanel">
-  <section>
-    <h2>Get All Users (from server, requires login)</h2>
-    <button onclick="getAllUsers()">Get All Users</button>
-    <pre id="allUsersResult"></pre>
-  </section>
+  <div class="tabs">
+    <button class="subtab-btn active" onclick="showSubTab('u-all')">List All</button>
+    <button class="subtab-btn" onclick="showSubTab('u-one')">Get One</button>
+    <button class="subtab-btn" onclick="showSubTab('u-update')">Update Mine</button>
+    <button class="subtab-btn" onclick="showSubTab('u-delete')">Delete Mine</button>
+  </div>
+
+  <div id="subtab-u-all" class="subtabpanel active">
+    <section>
+      <h2>Get All Users (requires login)</h2>
+      <button onclick="getAllUsers()">Get All Users</button>
+      <pre id="allUsersResult"></pre>
+    </section>
+  </div>
+
+  <div id="subtab-u-one" class="subtabpanel">
+    <section>
+      <h2>Get One User By Id</h2>
+      <input id="getUserId" placeholder="user id">
+      <button onclick="getOneUser()">Get User</button>
+      <pre id="getUserResult"></pre>
+    </section>
+  </div>
+
+  <div id="subtab-u-update" class="subtabpanel">
+    <section>
+      <h2>Update My Email</h2>
+      <p style="font-size:13px; color:#555;">
+        Server only allows updating your own account — the id below must match your logged-in user id shown on the Login tab.
+      </p>
+      <input id="updateUserId" placeholder="your user id">
+      <input id="updateUserEmail" placeholder="new email">
+      <button onclick="updateUser()">Update Email</button>
+      <pre id="updateUserResult"></pre>
+    </section>
+  </div>
+
+  <div id="subtab-u-delete" class="subtabpanel">
+    <section>
+      <h2>Delete My Account</h2>
+      <p style="font-size:13px; color:#555;">
+        Deletes the account you're currently logged in as. No id needed — the server identifies you from your token.
+      </p>
+      <button class="danger" onclick="deleteMyAccount()">Delete My Account</button>
+      <pre id="deleteUserResult"></pre>
+    </section>
+  </div>
 </div>
 
 <div id="tab-tasks" class="tabpanel">
   <div class="tabs">
     <button class="subtab-btn active" onclick="showSubTab('create')">Create</button>
     <button class="subtab-btn" onclick="showSubTab('list')">List</button>
+    <button class="subtab-btn" onclick="showSubTab('one')">Get One</button>
     <button class="subtab-btn" onclick="showSubTab('update')">Update</button>
     <button class="subtab-btn" onclick="showSubTab('delete')">Delete</button>
   </div>
@@ -98,8 +144,19 @@
   <div id="subtab-list" class="subtabpanel">
     <section>
       <h2>4. Get My Tasks</h2>
+      <input id="tasksPage" placeholder="page (default 1)">
+      <input id="tasksLimit" placeholder="limit (default 10)">
       <button onclick="getTasks()">Get Tasks</button>
       <pre id="tasksResult"></pre>
+    </section>
+  </div>
+
+  <div id="subtab-one" class="subtabpanel">
+    <section>
+      <h2>Get One Task By Id</h2>
+      <input id="getTaskId" placeholder="task id">
+      <button onclick="getOneTask()">Get Task</button>
+      <pre id="getTaskResult"></pre>
     </section>
   </div>
 
@@ -140,14 +197,17 @@
   }
 
   function showSubTab(name) {
-    document.querySelectorAll(".subtabpanel").forEach(p => p.classList.remove("active"));
-    document.querySelectorAll(".subtab-btn").forEach(b => b.classList.remove("active"));
+    // scoped to whichever tabpanel is currently visible, so Users and Tasks subtabs don't clash
+    const activeTabPanel = document.querySelector(".tabpanel.active");
+    activeTabPanel.querySelectorAll(".subtabpanel").forEach(p => p.classList.remove("active"));
+    activeTabPanel.querySelectorAll(".subtab-btn").forEach(b => b.classList.remove("active"));
     document.getElementById("subtab-" + name).classList.add("active");
     event.target.classList.add("active");
   }
 
   let token = null;
   let currentEmail = null;
+  let currentUserId = null;
   const signedUpUsers = [];
 
   function base() {
@@ -173,16 +233,30 @@
   function logout() {
     token = null;
     currentEmail = null;
+    currentUserId = null;
     document.getElementById("tokenDisplay").textContent = "(none yet)";
+    document.getElementById("myIdDisplay").textContent = "(none yet)";
     document.getElementById("statusBar").innerHTML =
       "Not logged in" +
       "<button id='logoutBtn' onclick='logout()' style='display:none; margin-left:10px;'>Logout</button>";
   }
 
+  // Decodes the payload of a JWT without checking its signature — fine for a
+  // local test client just reading our own token, but never do this to trust
+  // a token from someone else; real verification happens server-side only.
+  function decodeJwtPayload(jwt) {
+    try {
+      const payload = jwt.split(".")[1];
+      return JSON.parse(atob(payload));
+    } catch {
+      return null;
+    }
+  }
+
   async function signup() {
     const email = document.getElementById("signupEmail").value;
     const password = document.getElementById("signupPassword").value;
-    const res = await fetch(base() + "/signup", {
+    const res = await fetch(base() + "/users/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -199,7 +273,7 @@
   async function login() {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
-    const res = await fetch(base() + "/login", {
+    const res = await fetch(base() + "/users/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -212,7 +286,14 @@
       const match = data.value.match(/Token (.+)$/);
       token = match ? match[1] : null;
       document.getElementById("tokenDisplay").textContent = token || "(couldn't extract token)";
-      if (token) setLoggedIn(email);
+
+      if (token) {
+        setLoggedIn(email);
+        const payload = decodeJwtPayload(token);
+        currentUserId = payload ? payload.id : null;
+        document.getElementById("myIdDisplay").textContent =
+          currentUserId !== null ? currentUserId : "(couldn't decode token)";
+      }
     }
   }
 
@@ -231,11 +312,27 @@
   }
 
   async function getTasks() {
-    const res = await fetch(base() + "/tasks", {
+    const page = document.getElementById("tasksPage").value;
+    const limit = document.getElementById("tasksLimit").value;
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (limit) params.set("limit", limit);
+    const qs = params.toString() ? "?" + params.toString() : "";
+
+    const res = await fetch(base() + "/tasks" + qs, {
       headers: { "Authorization": "Bearer " + token },
     });
     const data = await res.json();
     document.getElementById("tasksResult").textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function getOneTask() {
+    const id = document.getElementById("getTaskId").value;
+    const res = await fetch(base() + "/tasks/" + id, {
+      headers: { "Authorization": "Bearer " + token },
+    });
+    const data = await res.json();
+    document.getElementById("getTaskResult").textContent = JSON.stringify(data, null, 2);
   }
 
   async function getProfile() {
@@ -248,12 +345,54 @@
   }
 
   async function getAllUsers() {
-    // Response shape is { success, value: { success, users: [...] }, trusteduser, trusteduser_id }
+    // Response shape: { success, value: [ {id, email}, ... ], trusteduser, trusteduser_id }
     const res = await fetch(base() + "/users", {
       headers: { "Authorization": "Bearer " + token },
     });
     const data = await res.json();
     document.getElementById("allUsersResult").textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function getOneUser() {
+    const id = document.getElementById("getUserId").value;
+    const res = await fetch(base() + "/users/" + id, {
+      headers: { "Authorization": "Bearer " + token },
+    });
+    const data = await res.json();
+    document.getElementById("getUserResult").textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function updateUser() {
+    const id = document.getElementById("updateUserId").value;
+    const email = document.getElementById("updateUserEmail").value;
+    const res = await fetch(base() + "/users/" + id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+      },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    document.getElementById("updateUserResult").textContent = JSON.stringify(data, null, 2);
+
+    // If we just renamed the account we're logged in as, keep the UI in sync.
+    if (data.success && email === currentEmail) {
+      // no-op: server identifies by id, not email, so nothing else to update
+    }
+  }
+
+  async function deleteMyAccount() {
+    const res = await fetch(base() + "/users", {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + token },
+    });
+    const data = await res.json();
+    document.getElementById("deleteUserResult").textContent = JSON.stringify(data, null, 2);
+
+    if (data.success) {
+      logout();
+    }
   }
 
   async function updateTask() {
