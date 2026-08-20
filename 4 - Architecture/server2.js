@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("path"); 
 const express = require("express");
 const userController = require("./controllers/userControllers2");
 const taskController = require("./controllers/taskControllers2");
@@ -12,7 +13,7 @@ app.use(express.json());
 const port = process.env.PORT || 7000;
 
 app.get("/", (req, res) => {
-  res.send("Welcome To My WebPage");
+    res.sendFile(path.join(__dirname, "AuthProfile.html"));
 });
 
 

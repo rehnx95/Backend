@@ -30,12 +30,6 @@
   <button id="logoutBtn" onclick="logout()" style="display:none; margin-left:10px;">Logout</button>
 </div>
 
-<!-- Change this if your server runs on a different port -->
-<section>
-  <h2>Server URL</h2>
-  <input id="baseUrl" value="http://localhost:7000">
-</section>
-
 <div class="tabs">
   <button class="tab-btn active" onclick="showTab('signup')">Signup</button>
   <button class="tab-btn" onclick="showTab('login')">Login</button>
@@ -211,7 +205,8 @@
   const signedUpUsers = [];
 
   function base() {
-    return document.getElementById("baseUrl").value;
+    // Always relative: requests go back to whatever domain served this page.
+    return "";
   }
 
   function renderSignedUpList() {
