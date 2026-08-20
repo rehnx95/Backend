@@ -1,5 +1,5 @@
 require("dotenv").config();
-const path = require("path"); 
+const path = require("path");
 const express = require("express");
 const userController = require("./controllers/userControllers2");
 const taskController = require("./controllers/taskControllers2");
@@ -12,10 +12,17 @@ app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 7000;
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "AuthProfile.html"));
+// Log every incoming request
+app.use((req, res, next) => {
+  const safeBody = req.body && req.body.password ? { ...req.body, password: "***" } : req.body;
+  console.log(new Date().toLocaleTimeString("en-GB"),`[app] ${req.method} ${req.url} | body:`, safeBody);
+  next();
 });
 
+app.get("/", (req, res) => {
+  console.log(new Date().toLocaleTimeString("en-GB"),"[app] GET / hit");
+  res.sendFile(path.join(__dirname, "AuthProfile.html"));
+});
 
 app.post("/tasks", authenticateToken, asyncHandler(taskController.createTask));
 app.get("/tasks", authenticateToken, asyncHandler(taskController.getTask));
@@ -24,6 +31,7 @@ app.patch("/tasks/:id", authenticateToken, asyncHandler(taskController.updateTas
 app.delete("/tasks/:id", authenticateToken, asyncHandler(taskController.deleteTask));
 
 app.get("/profile", authenticateToken, asyncHandler((req, res) => {
+  console.log(new Date().toLocaleTimeString("en-GB"),"[app] /profile hit for user:", req.user);
   res.send(`Welcome ${req.user.email}, your id is ${req.user.id}`);
 }));
 
@@ -35,5 +43,5 @@ app.patch("/users/:id", authenticateToken, asyncHandler(userController.updateUse
 app.get("/users/:id", authenticateToken, asyncHandler(userController.getUser));
 
 app.listen(port, () => {
-  console.log(`server running ${port}`);
+  console.log(new Date().toLocaleTimeString("en-GB"),`server running ${port}`);
 });
