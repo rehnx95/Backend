@@ -29,11 +29,20 @@ async function deleteUser(email) {
 }
 
 async function updateUser(id, email) {
+  const oldemail = await pool.query("SELECT email FROM users Where id=$1", [
+    id,
+  ]);
   const result = await pool.query(
     "UPDATE users SET email=$1 WHERE id=$2 RETURNING *",
     [email, id],
   );
-  return result.rows[0];
+  const updatedUser = {
+    id: result.rows[0].id,
+    oldemail: oldemail.rows[0].email,
+    NewEmail: result.rows[0].email,
+    created_at: result.rows[0].created_at,
+  };
+  return updatedUser;
 }
 
 async function getUser(id) {
