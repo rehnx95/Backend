@@ -28,6 +28,7 @@ app.post("/tasks", authenticateToken, asyncHandler(taskController.createTask));
 app.get("/tasks", authenticateToken, asyncHandler(taskController.getTask));
 app.get("/tasks/:id", authenticateToken, asyncHandler(taskController.getoneTask));
 app.patch("/tasks/:id", authenticateToken, asyncHandler(taskController.updateTask));
+app.patch("/tasks/:id/completed", authenticateToken, asyncHandler(taskController.completed));
 app.delete("/tasks/:id", authenticateToken, asyncHandler(taskController.deleteTask));
 
 app.get("/profile", authenticateToken, asyncHandler((req, res) => {
@@ -40,6 +41,7 @@ app.post("/users/login", asyncHandler(userController.login));
 app.get("/users", authenticateToken, asyncHandler(userController.getall));
 app.delete("/users", authenticateToken, asyncHandler(userController.deleteUser));
 app.patch("/users/:id", authenticateToken, asyncHandler(userController.updateUser));
+
 app.get("/users/:id", authenticateToken, asyncHandler(userController.getUser));
 
 app.use((req, res) => {

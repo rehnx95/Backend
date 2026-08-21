@@ -123,6 +123,7 @@
     <button class="subtab-btn" onclick="showSubTab('list')">List</button>
     <button class="subtab-btn" onclick="showSubTab('one')">Get One</button>
     <button class="subtab-btn" onclick="showSubTab('update')">Update</button>
+    <button class="subtab-btn" onclick="showSubTab('complete')">Toggle Complete</button>
     <button class="subtab-btn" onclick="showSubTab('delete')">Delete</button>
   </div>
 
@@ -161,6 +162,18 @@
       <input id="updateTaskTitle" placeholder="new title">
       <button onclick="updateTask()">Update Task</button>
       <pre id="updateResult"></pre>
+    </section>
+  </div>
+
+  <div id="subtab-complete" class="subtabpanel">
+    <section>
+      <h2>Toggle Task Completed</h2>
+      <p style="font-size:13px; color:#555;">
+        Flips the task's completed status (false → true, true → false). Only works on a task you own.
+      </p>
+      <input id="completeTaskId" placeholder="task id">
+      <button onclick="toggleComplete()">Toggle Complete</button>
+      <pre id="completeResult"></pre>
     </section>
   </div>
 
@@ -401,6 +414,18 @@
     });
     const data = await res.json();
     document.getElementById("updateResult").textContent = JSON.stringify(data, null, 2);
+  }
+
+  // New feature: toggle a task's completed status via
+  // PATCH /tasks/:id/complete (taskController.completed).
+  async function toggleComplete() {
+    const id = document.getElementById("completeTaskId").value;
+    const res = await fetch(base() + "/tasks/" + id + "/completed", {
+      method: "PATCH",
+      headers: { "Authorization": "Bearer " + token },
+    });
+    const data = await res.json();
+    document.getElementById("completeResult").textContent = JSON.stringify(data, null, 2);
   }
 
   async function deleteTask() {
