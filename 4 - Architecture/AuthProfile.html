@@ -266,7 +266,7 @@
   }
 
   async function login() {
-    const email = document.getElementById("loginEmail").value;
+   const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
     const res = await fetch(base() + "/users/login", {
       method: "POST",
@@ -276,10 +276,8 @@
     const data = await res.json();
     document.getElementById("loginResult").textContent = JSON.stringify(data, null, 2);
 
-    // Extract token from "Login Successful With Token eyJ..."
-    if (data.success && data.value) {
-      const match = data.value.match(/Token (.+)$/);
-      token = match ? match[1] : null;
+    if (data.success) {
+      token = data.token || null;
       document.getElementById("tokenDisplay").textContent = token || "(couldn't extract token)";
 
       if (token) {

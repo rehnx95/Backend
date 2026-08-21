@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-
-function authenticateToken(req, res, next) {
+const userRepository=require("../repository/usersDatabase")
+async function authenticateToken(req, res, next) {
   console.log(new Date().toLocaleTimeString("en-GB"),"[middleware] authenticateToken running for:", req.url);
   const authHeader = req.headers.authorization;
   console.log(new Date().toLocaleTimeString("en-GB"),"[middleware] authHeader:", authHeader);
@@ -13,6 +13,8 @@ function authenticateToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log(new Date().toLocaleTimeString("en-GB"),"[middleware] token valid, decoded:", decoded);
+    const user = await userRepository.getUser(decoded.id); 
+    if (!user) return res.status(401).send("User no longer exists");
     req.user = decoded;
     next();
   } catch (err) {

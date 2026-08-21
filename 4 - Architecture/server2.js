@@ -42,6 +42,15 @@ app.delete("/users", authenticateToken, asyncHandler(userController.deleteUser))
 app.patch("/users/:id", authenticateToken, asyncHandler(userController.updateUser));
 app.get("/users/:id", authenticateToken, asyncHandler(userController.getUser));
 
+app.use((req, res) => {
+  res.status(404).json({ success: false, error: "Route not found" });
+});
+
+app.use((err, req, res, next) => {
+  console.error(new Date().toLocaleTimeString("en-GB"), "[error]", err.message);
+  res.status(500).json({ success: false, error: "Something went wrong" });
+});
+
 app.listen(port, () => {
   console.log(new Date().toLocaleTimeString("en-GB"),`server running ${port}`);
 });

@@ -29,7 +29,7 @@ async function create(task) {
   console.log(new Date().toLocaleTimeString("en-GB"),"[repo:tasks] create called with task:", task);
   const result = await pool.query(
     "INSERT INTO tasks (user_id,title) VALUES ($1,$2) RETURNING *",
-    [task.userID, task.title],
+    [task.user_id, task.title],
   );
   console.log(new Date().toLocaleTimeString("en-GB"),"[repo:tasks] create inserted row:", result.rows[0]);
   return result.rows[0];

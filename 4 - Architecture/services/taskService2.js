@@ -3,7 +3,7 @@ const taskRepository = require("../repository/tasksDatabase");
 async function createTask(userID, title) {
   console.log(new Date().toLocaleTimeString("en-GB"),"[service:task] createTask called with userID:", userID, "title:", title);
   let newtask = {
-    userID: userID,
+    user_id: userID,
     title: title,
   };
   const result = await taskRepository.create(newtask);
