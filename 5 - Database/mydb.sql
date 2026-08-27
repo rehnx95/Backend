@@ -31,6 +31,14 @@ CREATE TABLE projects (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
+CREATE TABLE project_members (
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role member_role NOT NULL DEFAULT 'member',
+    PRIMARY KEY (project_id, user_id)
+);
+
 CREATE TABLE tasks (
     id BIGSERIAL PRIMARY KEY,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -50,8 +58,8 @@ CREATE TABLE tags (
 
 CREATE TABLE tasks_tags (
     task_id BIGINT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    tag_id BIGINT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    PRIMARY KEY (task_id, tag_id)
+    tags_id BIGINT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (task_id, tags_id)
 );
 
 CREATE TABLE comments (
@@ -62,12 +70,6 @@ CREATE TABLE comments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE project_members (
-    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role member_role NOT NULL DEFAULT 'member',
-    PRIMARY KEY (project_id, user_id)
-);
 
 CREATE INDEX idx_profiles_user_id ON profiles(user_id);
 CREATE INDEX idx_projects_user_id ON projects(user_id);
