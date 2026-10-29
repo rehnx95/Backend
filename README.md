@@ -23,5 +23,5 @@ Each folder is one step of the roadmap and holds my implementations for that top
 ## About
 
 - **Language:** JavaScript (Node.js)
-- **Sheet:** Custom Backend engineering sheet, kept in [`source/backend.txt`](https://github.com) in the Track-Sheet repo
+- **Sheet:** Custom Backend engineering sheet, kept in [`source/backend.txt`](https://github.com/rehnx95/Track-Sheet/blob/main/source/backend.txt) in the Track-Sheet repo
 - **Goal:** build strong backend architecture and system design fundamentals from scratch step by step
