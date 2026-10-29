@@ -1,0 +1,86 @@
+[Step 2 - Backend First Principles (Playlist Sriniously) / 2.1 - Orientation]
+  15. Roadmap for backend from first principles — Video 1
+  16. Walk the path of a true backend engineer — Video 2
+  17. What is a Backend, how do they work — Video 3
+  18. Benefits of learning backend engineering — Video 4
+
+[Step 3 - Building Your First Server]
+  23. req/res objects, headers, streaming a response
+  24. Environment Variables: config via .env and process.env (never hardcode credentials)
+  26. CORS: cross-origin fundamentals, preflight (OPTIONS), configuring cors middleware
+  27. Route params, query params, body parsing
+  28. Custom + error-handling middleware
+  29. express.Router() for modular routes
+  30. TypeScript setup: tsc or ts-node/tsx (optional)
+
+[Step 4 - Core Backend Architecture (Playlist) / 4.1 - Apply it]
+  35. Rebuild Express app in Controller-Service-Repository layers (TS optional)
+  36. Add Zod or Joi for validation (TS type inference optional)
+  37. Implement JWT auth by hand once, then use a library
+
+[Step 5 - Databases / 5.2 - SQL hands-on]
+  40. Indexing strategies & query optimization (EXPLAIN ANALYZE)  (covered by 39,40-RawSQL.js)
+  41. Prisma or Drizzle: schema design, migrations, relations
+  42. Database migrations: schema version control, safe CI/CD updates
+  43. Connection pooling: why pool vs single clients (pg-pool, PgBouncer)
+  44. Transactions and ACID at the ORM/query builder layer
+
+[Step 5 - Databases / 5.3 - NoSQL (optional per stack)]
+  45. MongoDB: documents, collections
+  46. Mongoose: schemas, models, population
+  47. SQL vs NoSQL — when to use which
+
+[Step 6 - Caching & Background Work (Playlist)]
+  48. Caching, the secret behind it all — Video 13
+  49. Redis in Node, cache-aside pattern (hands-on)
+  50. Task queues and background jobs — Video 14
+  51. BullMQ on Redis — retries, concurrency limits, delayed jobs (hands-on)
+
+[Step 7 - Search (Playlist)]
+  52. Full text search using Elasticsearch — Video 15
+  53. One Elasticsearch query from a Node service (optional)
+
+[Step 8 - Reliability Engineering (Playlist)]
+  54. Error Handling and Building Fault Tolerant Systems — Video 16
+  55. Production-grade Configuration Management — Video 17
+  56. Logging, Monitoring and Observability — Video 18
+  57. Request tracing: AsyncLocalStorage for request IDs across logs
+  58. Production logging with Winston/Pino, intro to Prometheus/Grafana
+  59. Graceful Shutdown (SIGTERM/SIGINT handling) — Video 19
+  60. Health check / readiness endpoints (/healthz, /ready)
+
+[Step 9 - Security (Playlist)]
+  61. Backend Security: Everything You Need — Video 20
+  62. Production hardening: helmet.js, express-rate-limit, secure cookies, bcrypt
+
+[Step 10 - Testing]
+  63. Unit testing business logic with Jest or Vitest
+  64. Integration testing HTTP routes with Supertest
+  65. Mocking DB calls vs transient test DBs (Docker-driven testing)
+  66. TDD on one small feature
+
+[Step 11 - Scaling, Performance, Concurrency (Playlist)]
+  67. Backend Scaling and Performance, Part 1 — Video 21.1
+  68. Backend Scaling and Performance, Part 2 — Video 21.2
+  69. Concurrency & Parallelism: IO Bound vs CPU Bound — Video 22
+
+[Step 12 - Containers & Deployment]
+  70. Dockerfile basics, layer optimization, images vs containers
+  71. Multi-container envs with docker-compose (App + Postgres + Redis)
+  72. GitHub Actions: lint, type-check, test on every push
+  73. Deployment: Render/Railway first, then a VPS or AWS EC2
+  74. Securely managing prod env vars & secrets via secret managers
+
+[Step 13 - System Design (separate track)]
+  75. Load balancers, reverse proxies (Nginx / HAProxy)
+  76. DB scaling: replication, read replicas, connection concentration, sharding
+  77. CAP theorem, availability, consistency models
+  78. Event-driven architectures: Kafka / RabbitMQ at scale
+  79. Study resource: Alex Xu's System Design Interview, or ByteByteGo
+
+[Step 14 - Advanced, pick by interest]
+  80. WebSockets & real-time bidirectional comms (Socket.io)
+  81. GraphQL basics (Apollo Server, schemas, resolvers)
+  82. Architectural styles: Microservices vs the Majestic Monolith
+  83. API Gateway patterns & centralized rate-limiting
+  84. gRPC — Protocol Buffers, high-performance microservice comms
